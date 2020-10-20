@@ -2175,7 +2175,7 @@ BaseCache::CacheStats::CacheStats(BaseCache &c)
     timestampMisses(this, "ghost_timestamp_misses",
                      "number of times timestamp policy causes a block to be inaccessible"),
     ghostCommits(this, "ghost_commits",
-                     "number of cache lines moved from ghost to main),
+                     "number of cache lines moved from ghost to main"),
     sameLeapfrogs(this, "same_leapfrogs",
                      "number of times leapfrogging occurs with a shared MSHR request"),
     writebacks(this, "writebacks", "number of writebacks"),
