@@ -99,6 +99,7 @@ void BaseCache::commitLoad(Addr addr, Addr pc) {
     
     
      if(blk) {
+	stats.ghostCommits++;
 
 
 	blk->timestamp = 0;

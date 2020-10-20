@@ -1,11 +1,9 @@
-Experimental Artefact for "MuonTrap: Preventing Cross-Domain Spectre-Like Attacks by Capturing Speculative State", ISCA 2020
+Experimental Artefact for GhostMinion
 ==================================================
 
 This repository contains artefacts and workflows 
-to reproduce experiments from the ISCA 2020 paper 
-by S. Ainsworth and T. M. Jones
+to reproduce experiments from a paper.
 
-"MuonTrap: Preventing Cross-Domain Spectre-Like Attacks by Capturing Speculative State"
 
 Hardware pre-requisities
 ========================
@@ -78,9 +76,5 @@ If you'd like further information on how to set this up, please contact the auth
 
 Authors
 =======
-S. Ainsworth and T. M. Jones
-
-Acknowledgements
-===============
-This work was supported by the Engineering and Physical Sciences Research Council (EPSRC), through grant references EP/K026399/1, EP/P020011/1 and EP/M506485/1, and ARM Ltd.
+S. Ainsworth
 

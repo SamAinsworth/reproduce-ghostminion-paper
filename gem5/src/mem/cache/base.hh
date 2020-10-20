@@ -1053,6 +1053,7 @@ virtual void sendGhostClear();
 
     
 	Stats::Scalar timestampMisses;
+	Stats::Scalar ghostCommits;
     	Stats::Scalar sameLeapfrogs;
 
 
