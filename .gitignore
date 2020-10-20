@@ -11,6 +11,8 @@
 *.gch
 *.pch
 
+*.pyc
+
 # Compiled Dynamic libraries
 *.so
 *.dylib
