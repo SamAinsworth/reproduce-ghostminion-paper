@@ -891,9 +891,6 @@ BaseCache::getNextQueueEntry()
                          blkSize, 0, Request::funcRequestorId);
 		pf_req->timestamp = 0;
 
-   /* if (is_secure) {
-        pf_req->setFlags(Request::SECURE);
-    }*/
 		pf_req->taskId(ContextSwitchTaskId::Prefetcher);
 		PacketPtr pf_pkt = new Packet(pf_req,  MemCmd::HardPFReq);
 		
