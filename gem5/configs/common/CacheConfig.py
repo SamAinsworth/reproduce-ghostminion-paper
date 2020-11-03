@@ -119,9 +119,9 @@ def config_cache(options, system):
     for i in range(options.num_cpus):
         if options.caches:
             icache = icache_class(size=options.l1i_size,
-                                  assoc=options.l1i_assoc, has_ghost=options.iminion, ghostSize=options.ghost_size,ghostAssoc=options.ghost_assoc)
+                                  assoc=options.l1i_assoc, has_ghost=options.iminion, ghostSize=options.ghost_size,ghostAssoc=options.ghost_assoc, write_buffers = 16)
             dcache = dcache_class(size=options.l1d_size,
-                                  assoc=options.l1d_assoc,has_ghost=options.ghostminion, prefetch_ordered = options.prefetch_ordered, block_coherence = options.cache_coher, ghostSize=options.ghost_size,ghostAssoc=options.ghost_assoc)
+                                  assoc=options.l1d_assoc,has_ghost=options.ghostminion, prefetch_ordered = options.prefetch_ordered, block_coherence = options.cache_coher, ghostSize=options.ghost_size,ghostAssoc=options.ghost_assoc, write_buffers = 8)
 
             # If we have a walker cache specified, instantiate two
             # instances here

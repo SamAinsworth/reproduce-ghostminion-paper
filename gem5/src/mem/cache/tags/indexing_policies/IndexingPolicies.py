@@ -35,12 +35,15 @@ class BaseIndexingPolicy(SimObject):
 
     # Get the size from the parent (cache)
     size = Param.MemorySize(Parent.size, "capacity in bytes")
+    ghostSize = Param.MemorySize(Parent.ghostSize, "capacity in bytes")
 
     # Get the entry size from the parent (tags)
     entry_size = Param.Int(Parent.entry_size, "entry size in bytes")
 
     # Get the associativity
     assoc = Param.Int(Parent.assoc, "associativity")
+    ghostAssoc = Param.Int(Parent.ghostAssoc, "capacity in bytes")
+    ghost = Param.Bool(Parent.ghost, "ghost")
 
 class SetAssociative(BaseIndexingPolicy):
     type = 'SetAssociative'

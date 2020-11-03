@@ -132,8 +132,11 @@ void BaseCache::commitLoad(Addr addr, Addr pc) {
 
 
 	}
-        	doWritebacks(writebacks,clockEdge()); //TODO: maybe atomic.
+        	if(!writebacks.empty())doWritebacks(writebacks,clockEdge()); //TODO: maybe atomic.
 	
+    } else {
+	//asynchronous reload.
+	//upgradeQueue.push(addr);
     }
     
 	if(prefetchOrdered && sharedPrefetcher && sharedCache->mshrQueue.canPrefetch()) {
@@ -156,7 +159,7 @@ void BaseCache::ghostClear() {
 	if(blk->isValid())evictBlock(blk,writebacks);
         
     }
-	        	doWritebacks(writebacks,clockEdge()); 
+	        	if(!writebacks.empty())doWritebacks(writebacks,clockEdge()); 
 //This is a hack due to how gem5 handles dirty packets. In coherence mode,
 //writebacks should never be triggered, as packets aren't allowed to be dirty
 // (and in regular mode, it's a sleight of hand - really, we're just re-marking
@@ -799,7 +802,7 @@ bool foundZero = false;
 bool foundNonZero = false;
 for (auto &target: targets) {
         Packet *tgt_pkt = target.pkt;
-	foundZero |= (tgt_pkt->req->timestamp==0);	
+	foundZero |= (tgt_pkt->req->timestamp==0 || tgt_pkt->needsWritable());	
 	foundNonZero |= (tgt_pkt->req->timestamp!=0);	
 }
 

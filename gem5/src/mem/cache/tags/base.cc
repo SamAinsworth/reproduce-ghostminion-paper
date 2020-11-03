@@ -57,11 +57,11 @@
 
 BaseTags::BaseTags(const Params *p)
     : ClockedObject(p), blkSize(p->block_size), blkMask(blkSize - 1),
-      size(p->size), lookupLatency(p->tag_latency),
+      size(p->ghost? p->ghostSize: p->size), lookupLatency(p->tag_latency),
       system(p->system), indexingPolicy(p->indexing_policy),
-      warmupBound((p->warmup_percentage/100.0) * (p->size / p->block_size)),
-      warmedUp(false), numBlocks(p->size / p->block_size),
-      dataBlks(new uint8_t[p->size]), // Allocate data storage in one big chunk
+      warmupBound((p->warmup_percentage/100.0) * ((p->ghost? p->ghostSize: p->size) / p->block_size)),
+      warmedUp(false), numBlocks((p->ghost? p->ghostSize: p->size) / p->block_size),
+      dataBlks(new uint8_t[(p->ghost? p->ghostSize: p->size)]), // Allocate data storage in one big chunk
       isGhost(p->ghost),
       stats(*this)
 {

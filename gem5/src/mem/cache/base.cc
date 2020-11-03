@@ -185,6 +185,8 @@ Addr
 BaseCache::regenerateBlkAddr(CacheBlk* blk)
 {
     if (blk != tempBlock) {
+	if(blk->inGhost) return ghosttags->regenerateBlkAddr(blk);
+	else 
         return tags->regenerateBlkAddr(blk);
     } else {
         return tempBlock->getAddr();
@@ -477,7 +479,36 @@ BaseCache::recvTimingResp(PacketPtr pkt)
     assert(!mshr->wasWholeLineWrite || pkt->isInvalidate());
 
     CacheBlk *blk = tags->findBlock(pkt->getAddr(), pkt->isSecure());
-if(!blk && hasGhost) blk = ghosttags->findBlock(pkt->getAddr(), pkt->isSecure());
+if(!blk && hasGhost) { 
+	blk = ghosttags->findBlock(pkt->getAddr(), pkt->isSecure());
+	if(blk && blockCoherence && (!pkt->hasSharers() || !(pkt->hasData() || pkt->cmd == MemCmd::InvalidateResp))) {
+		assert(pkt->req->timestamp == 0);
+		Addr addr = pkt->getAddr();
+		RequestPtr req_func = std::make_shared<Request>(addr - (addr %blkSize),
+                         blkSize, 0, blk? blk->srcRequestorId: Request::funcRequestorId);
+		req_func->timestamp = 0;
+		assert(!blk->isDirty() || !blockCoherence);
+		       	Packet pkt_func(req_func,
+                        MemCmd::ReadResp);
+                uint64_t data[] = {1,2,3,4,5,6,7,8};
+                pkt_func.dataStatic(&data);
+		pkt_func.setDataFromBlock(blk->data,blkSize);
+		CacheBlk* newBlk = NULL;
+		bool toDirty = blk->isDirty();
+		bool wasWritable = blk->isWritable();
+		assert(!toDirty || !blockCoherence);
+		evictBlock(blk);//blk->timestamp = (uint64_t)-1;
+		newBlk = handleFill(&pkt_func, newBlk, writebacks, true);
+        	assert(newBlk != nullptr);
+		if(toDirty) newBlk->status |= BlkDirty;
+		if(wasWritable && !blockCoherence) {
+			newBlk->status |= BlkWritable;
+		}
+		else newBlk->status &= ~BlkWritable;
+		
+		blk = newBlk;
+	}
+}
 
     if (is_fill && !is_error) {
         DPRINTF(Cache, "Block for addr %#llx being updated in Cache\n",
@@ -847,6 +878,37 @@ BaseCache::getNextQueueEntry()
         // No conflicts; issue read
         return miss_mshr;
     }
+/*
+ while(upgradeQueue.size()>0 && mshrQueue.canPrefetch()) {
+
+		Addr addr = upgradeQueue.top();
+		upgradeQueue.pop();
+		Addr pf_addr = addr - (addr %blkSize);
+	    CacheBlk *blk = tags->findBlock(pf_addr, false);
+
+    if(blk) continue;
+        RequestPtr pf_req = std::make_shared<Request>(pf_addr,
+                         blkSize, 0, Request::funcRequestorId);
+		pf_req->timestamp = 0;
+
+   /* if (is_secure) {
+        pf_req->setFlags(Request::SECURE);
+    }*/
+		pf_req->taskId(ContextSwitchTaskId::Prefetcher);
+		PacketPtr pf_pkt = new Packet(pf_req,  MemCmd::HardPFReq);
+		
+		pf_pkt->allocate();
+		
+		            if (!tags->findBlock(pf_addr, pf_pkt->isSecure()) && !(hasGhost && ghosttags->findBlock(pf_pkt->getAddr(), pf_pkt->isSecure())) &&
+                !mshrQueue.findMatch(pf_addr, pf_pkt->isSecure()) &&
+                !writeBuffer.findMatch(pf_addr, pf_pkt->isSecure())) {
+						return allocateMissBuffer(pf_pkt, curTick(), false);
+					} else {
+						delete pf_pkt;
+					}
+		
+	}
+*/
 
     // fall through... no pending requests.  Try a prefetch.
     assert(!miss_mshr && !wq_entry);
@@ -1439,6 +1501,7 @@ BaseCache::handleFill(PacketPtr pkt, CacheBlk *blk, PacketList &writebacks,
     assert(addr == pkt->getBlockAddr(blkSize));
     assert(!writeBuffer.findMatch(addr, is_secure));
 
+
     if (!blk) {
         // better have read new data...
         assert(pkt->hasData() || pkt->cmd == MemCmd::InvalidateResp);
@@ -1488,8 +1551,8 @@ BaseCache::handleFill(PacketPtr pkt, CacheBlk *blk, PacketList &writebacks,
         // we could get a writable line from memory (rather than a
         // cache) even in a read-only cache, note that we set this bit
         // even for a read-only cache, possibly revisit this decision
-	    assert(!blk->inGhost || !blockCoherence);
-        blk->status |= BlkWritable;
+	assert(!blk->inGhost || !blockCoherence); 
+ 	       blk->status |= BlkWritable;
 
         // check if we got this via cache-to-cache transfer (i.e., from a
         // cache that had the block in Modified or Owned state)
@@ -1499,6 +1562,7 @@ BaseCache::handleFill(PacketPtr pkt, CacheBlk *blk, PacketList &writebacks,
 	    assert(!(hasGhost && pkt->req->timestamp >0) || !blockCoherence);
 	    //assert(blockWasNull);
 	assert(!blk->inGhost || !hasGhost || !blockCoherence); //TODO: the hasGhost here really shouldn't be needed, but mysteriously is.
+
             blk->status |= BlkDirty;
 
             chatty_assert(!isReadOnly, "Should never see dirty snoop response "
@@ -1835,7 +1899,13 @@ BaseCache::sendMSHRQueuePacket(MSHR* mshr)
     }
 
     CacheBlk *blk = tags->findBlock(mshr->blkAddr, mshr->isSecure);
-    if(hasGhost && !blk)blk  = ghosttags->findBlock(mshr->blkAddr, mshr->isSecure);
+    if(hasGhost && !blk) {
+	blk  = ghosttags->findBlock(mshr->blkAddr, mshr->isSecure);
+	if(blk && blk->isValid() && !blk->isWritable() && blockCoherence) {
+		evictBlock(blk);
+		blk = NULL;
+	}
+    }
 
     // either a prefetch that is not present upstream, or a normal
     // MSHR request, proceed to get the packet to send downstream

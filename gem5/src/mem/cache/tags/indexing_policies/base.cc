@@ -53,8 +53,8 @@
 #include "mem/cache/replacement_policies/replaceable_entry.hh"
 
 BaseIndexingPolicy::BaseIndexingPolicy(const Params *p)
-    : SimObject(p), assoc(p->assoc),
-      numSets(p->size / (p->entry_size * assoc)),
+    : SimObject(p), assoc(p->ghost? p->ghostAssoc : p->assoc),
+      numSets((p->ghost? p->ghostSize: p->size) / (p->entry_size * assoc)),
       setShift(floorLog2(p->entry_size)), setMask(numSets - 1), sets(numSets),
       tagShift(setShift + floorLog2(numSets))
 {
