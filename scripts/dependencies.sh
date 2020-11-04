@@ -3,3 +3,4 @@ sudo apt-get install gcc-5-arm-linux-gnueabi g++-5-arm-linux-gnueabi gfortran-ar
 sudo apt-get install gnuplot
 sudo apt-get install g++ python-dev scons m4 swig
 sudo apt-get install zlib1g-dev
+sudo apt-get install device-tree-compiler
