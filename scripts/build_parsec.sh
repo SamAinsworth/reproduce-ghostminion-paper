@@ -49,7 +49,8 @@ mdkir aarch_system
 cd aarch_system
 tar -xvf aarch-system-201901106.tar.bz2
 cd ..
-cd gem5/system/arm/dt$
+mv linaro-minimal-aarch64.img aarch_system/disks
+cd gem5/system/arm/dt
 make
 cd $BASE
 
