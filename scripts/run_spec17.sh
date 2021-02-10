@@ -1,7 +1,7 @@
 cd ..
 set -u
 export BASE=$(pwd)
-cd SPEC/benchspec/CPU2006/
+cd SPEC17/benchspec/CPU/
 N=$(grep ^cpu\\scores /proc/cpuinfo | uniq |  awk '{print $4}')
 M=$(grep MemTotal /proc/meminfo | awk '{print $2}')
 G=$(expr $M / 4097152)
