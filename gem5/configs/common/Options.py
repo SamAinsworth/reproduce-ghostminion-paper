@@ -423,7 +423,6 @@ def addSEOptions(parser):
                       help="Wait for remote GDB to connect.")
 
 default_kernel = 'vmlinux.arm64'
-default_disk = 'linaro-minimal-aarch64.img'
 default_root_device = '/dev/vda1'
 
 
@@ -481,7 +480,7 @@ def addFSOptions(parser):
 
     # Disk Image Options
     parser.add_option("--disk-image", action="append", type="string",
-            default=default_disk, help="Path to the disk images to use.")
+            default=[], help="Path to the disk images to use.")
     parser.add_option("--root-device", action="store", type="string",
             default=default_root_device, help="OS device name for root partition")
 

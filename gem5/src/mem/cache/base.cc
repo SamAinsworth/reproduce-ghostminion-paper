@@ -1619,13 +1619,14 @@ BaseCache::allocateBlock(const PacketPtr pkt, PacketList &writebacks)
     std::vector<CacheBlk*> evict_blks;
     //TODO: check timestamp, send to appropriate place.
     CacheBlk *victim;
-    if(pkt->req->timestamp && hasGhost) {
+    if(pkt->req->timestamp && hasGhost && (!pkt->cacheResponding() || !blockCoherence)) {
 	//assert(hasGhost);
 	assert(!pkt->cacheResponding() || !blockCoherence);
 	assert(!pkt->isWrite());
 	victim =  ghosttags->findVictim(addr, is_secure, blk_size_bits,
                                         evict_blks, pkt->req->timestamp);
     } else {
+	pkt->req->timestamp = 0;
 	victim =  tags->findVictim(addr, is_secure, blk_size_bits,
                                         evict_blks, 0);
     }

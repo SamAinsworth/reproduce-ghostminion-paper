@@ -29,16 +29,16 @@ source ./env.sh
 parsecmgmt -a build -c gcc-hooks -p blackscholes canneal ferret fluidanimate freqmine streamcluster swaptions
 cd $BASE
 wget http://dist.gem5.org/dist/current/arm/aarch-system-201901106.tar.bz2
-wget http://dist.gem5.org/dist/current/arm/disks/linaro-minimal-aarch64.img.bz2
-bzip2 -d linaro-minimal-aarch64.img.bz2
-dd if=/dev/zero bs=1G count=5 >> ./linaro-minimal-aarch64.img
-sudo parted linaro-minimal-aarch64.img resizepart 1 100% # grow partition 1
+wget http://dist.gem5.org/dist/current/arm/disks/aarch64-ubuntu-trusty-headless.img.bz2
+bzip2 -d aarch64-ubuntu-trusty-headless.img.bz2
+dd if=/dev/zero bs=1G count=5 >> ./aarch64-ubuntu-trusty-headless.img
+sudo parted aarch64-ubuntu-trusty-headless.img resizepart 1 100% # grow partition 1
 mkdir disk_mnt
-name=$(sudo fdisk -l linaro-minimal-aarch64.img | tail -1 | awk -F: '{ print $1 }' \
+name=$(sudo fdisk -l aarch64-ubuntu-trusty-headless.img | tail -1 | awk -F: '{ print $1 }' \
 | awk -F" " '{ print $1 }')
-start_sector=$(sudo fdisk -l linaro-minimal-aarch64.img | grep $name | awk -F" " '{ print $2 }')
-units=$(sudo fdisk -l linaro-minimal-aarch64.img | grep Units | awk -F" " '{ print $8 }')
-sudo mount -o loop,offset=$(($start_sector*$units)) linaro-minimal-aarch64.img disk_mnt
+start_sector=$(sudo fdisk -l aarch64-ubuntu-trusty-headless.img | grep $name | awk -F" " '{ print $2 }')
+units=$(sudo fdisk -l aarch64-ubuntu-trusty-headless.img | grep Units | awk -F" " '{ print $8 }')
+sudo mount -o loop,offset=$(($start_sector*$units)) aarch64-ubuntu-trusty-headless.img disk_mnt
 loop=$(df | grep disk_mnt | awk '{ print $1 }')
 sudo resize2fs $loop # resize filesystem
 df #check that the Available space for disk_mnt is increased
@@ -49,7 +49,7 @@ mdkir aarch_system
 cd aarch_system
 tar -xvf aarch-system-201901106.tar.bz2
 cd ..
-mv linaro-minimal-aarch64.img aarch_system/disks
+mv aarch64-ubuntu-trusty-headless.img aarch_system/disks
 cd gem5/system/arm/dt
 make
 cd $BASE
@@ -58,5 +58,11 @@ cd arm-gem5-rsp/parsec_rcs
 for bench in blackscholes canneal ferret fluidanimate freqmine streamcluster swaptions
 do
   bash gen_rcs.sh -i simmedium -p $bench -n 4
+done
+cd $BASE
+mkdir run_parsec
+for bench in blackscholes canneal ferret fluidanimate freqmine streamcluster swaptions
+do
+  mkdir $bench
 done
 

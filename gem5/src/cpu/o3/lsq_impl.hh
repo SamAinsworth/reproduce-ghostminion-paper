@@ -784,6 +784,8 @@ LSQ<Impl>::SingleDataRequest::finish(const Fault &fault, const RequestPtr &req,
          if(fault == NoFault && ((LSQRequest::_inst->getCpuPtr()->getDataPort().sendFunctionalSnoopCheck(&p) && mode != BaseTLB::Mode::Write))) {
 			req->setFlags(Request::STRICT_ORDER);
 			_inst->strictlyOrdered(true);
+			req->timestamp = 0;
+			_inst->timestamp = 0;
 		 } else		
         _inst->strictlyOrdered(req->isStrictlyOrdered());
 
@@ -830,6 +832,8 @@ LSQ<Impl>::SplitDataRequest::finish(const Fault &fault, const RequestPtr &req,
          if(fault == NoFault && ((LSQRequest::_inst->getCpuPtr()->getDataPort().sendFunctionalSnoopCheck(&p) && mode != BaseTLB::Mode::Write))) {
 			mainReq->setFlags(Request::STRICT_ORDER);
 			_inst->strictlyOrdered(true);
+			req->timestamp = 0;
+			_inst->timestamp = 0;
 		 } else		
             _inst->strictlyOrdered(mainReq->isStrictlyOrdered());
             flags.set(Flag::TranslationFinished);

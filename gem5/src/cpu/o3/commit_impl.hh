@@ -1219,11 +1219,11 @@ DefaultCommit<Impl>::commitHead(const DynInstPtr &head_inst, unsigned inst_num)
 
         // Make sure we are only trying to commit un-executed instructions we
         // think are possible.
-        assert(head_inst->isNonSpeculative() || head_inst->isStoreConditional()
+ /*       assert(head_inst->isNonSpeculative() || head_inst->isStoreConditional()
                || head_inst->isMemBarrier() || head_inst->isWriteBarrier()
                || head_inst->isAtomic()
                || (head_inst->isLoad() && head_inst->strictlyOrdered()));
-
+*/
         DPRINTF(Commit,
                 "Encountered a barrier or non-speculative "
                 "instruction [tid:%i] [sn:%llu] "
@@ -1244,7 +1244,11 @@ DefaultCommit<Impl>::commitHead(const DynInstPtr &head_inst, unsigned inst_num)
         // it is executed.
         head_inst->clearCanCommit();
 
-        if (head_inst->isLoad() && head_inst->strictlyOrdered()) {
+        if (head_inst->isLoad()) {
+			if(!head_inst->strictlyOrdered()) {
+				warn("non-strict load\n");
+			}
+	    head_inst->timestamp = 0;
             DPRINTF(Commit, "[tid:%i] [sn:%llu] "
                     "Strictly ordered load, PC %s.\n",
                     tid, head_inst->seqNum, head_inst->pcState());
