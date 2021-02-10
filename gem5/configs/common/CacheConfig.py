@@ -99,7 +99,7 @@ def config_cache(options, system):
         # same clock as the CPUs.
         system.l2 = l2_cache_class(clk_domain=system.cpu_clk_domain,
                                    size=options.l2_size,
-                                   assoc=options.l2_assoc,above_ghost=(options.ghostminion or options.iminion), prefetch_ordered = options.prefetch_ordered, block_coherence = options.cache_coher)
+                                   assoc=options.l2_assoc,above_ghost=(options.ghostminion or options.iminion), prefetch_ordered = options.prefetch_ordered, block_coherence = options.cache_coher, write_buffers= 256)
 
         system.tol2bus = L2XBar(clk_domain = system.cpu_clk_domain)
         system.l2.cpu_side = system.tol2bus.master
@@ -119,9 +119,9 @@ def config_cache(options, system):
     for i in range(options.num_cpus):
         if options.caches:
             icache = icache_class(size=options.l1i_size,
-                                  assoc=options.l1i_assoc, has_ghost=options.iminion, ghostSize=options.ghost_size,ghostAssoc=options.ghost_assoc)
+                                  assoc=options.l1i_assoc, has_ghost=options.iminion, ghostSize=options.ghost_size,ghostAssoc=options.ghost_assoc, write_buffers = 256)
             dcache = dcache_class(size=options.l1d_size,
-                                  assoc=options.l1d_assoc,has_ghost=options.ghostminion, prefetch_ordered = options.prefetch_ordered, block_coherence = options.cache_coher, ghostSize=options.ghost_size,ghostAssoc=options.ghost_assoc)
+                                  assoc=options.l1d_assoc,has_ghost=options.ghostminion, prefetch_ordered = options.prefetch_ordered, block_coherence = options.cache_coher, ghostSize=options.ghost_size,ghostAssoc=options.ghost_assoc, write_buffers = 256)
 
             # If we have a walker cache specified, instantiate two
             # instances here

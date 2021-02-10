@@ -264,7 +264,7 @@ def makeArmSystem(mem_mode, machine_type, num_cpus=1, mdesc=None,
         if not cmdline:
             cmdline = 'earlyprintk=pl011,0x1c090000 console=ttyAMA0 ' + \
                       'lpj=19988480 norandmaps rw loglevel=8 ' + \
-                      'mem=%(mem)s root=%(rootdev)s'
+                      'mem=%(mem)s root=/dev/sda1'
 
         if hasattr(self.realview.gic, 'cpu_addr'):
             self.gic_cpu_addr = self.realview.gic.cpu_addr
