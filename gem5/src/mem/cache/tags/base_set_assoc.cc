@@ -50,7 +50,7 @@
 #include "base/intmath.hh"
 
 BaseSetAssoc::BaseSetAssoc(const Params *p)
-    :BaseTags(p), allocAssoc(p->assoc), blks(p->size / p->block_size),
+    :BaseTags(p), allocAssoc((p->ghost? p->ghostAssoc: p->assoc)), blks((p->ghost? p->ghostSize: p->size) / p->block_size),
      sequentialAccess(p->sequential_access),
      replacementPolicy(p->replacement_policy)
 {

@@ -394,7 +394,7 @@ def makeLinuxMipsSystem(mem_mode, mdesc=None, cmdline=None):
     self.terminal = Terminal()
     self.console = binary('mips/console')
     if not cmdline:
-        cmdline = 'root=/dev/hda1 console=ttyS0'
+        cmdline = 'root=/dev/sda1 console=ttyS0'
     self.workload = KernelWorkload(command_line=fillInCmdline(mdesc, cmdline))
 
     self.system_port = self.membus.slave

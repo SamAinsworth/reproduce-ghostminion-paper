@@ -49,7 +49,8 @@ class BaseTags(ClockedObject):
     ghost = Param.Bool(False,"spooky")
 
     # Get the size from the parent (cache)
-    size = Param.MemorySize(Parent.ghostSize if ghost else Parent.size, "capacity in bytes")
+    size = Param.MemorySize(Parent.size, "capacity in bytes")
+    ghostSize = Param.MemorySize(Parent.ghostSize, "ghost capacity in bytes")
 
 
 
@@ -80,7 +81,8 @@ class BaseSetAssoc(BaseTags):
     cxx_header = "mem/cache/tags/base_set_assoc.hh"
 
     # Get the cache associativity
-    assoc = Param.Int(Parent.ghostAssoc if Parent.ghost else Parent.assoc, "associativity")
+    assoc = Param.Int(Parent.assoc, "associativity")
+    ghostAssoc = Param.Int(Parent.ghostAssoc, "ghost associativity")
 
     # Get replacement policy from the parent (cache)
     replacement_policy = Param.BaseReplacementPolicy(

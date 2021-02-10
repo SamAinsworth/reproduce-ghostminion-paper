@@ -9,7 +9,11 @@ cd SPEC/benchspec/CPU2006/
 N=$(grep ^cpu\\scores /proc/cpuinfo | uniq |  awk '{print $4}')
 M=$(grep MemTotal /proc/meminfo | awk '{print $2}')
 G=$(expr $M / 2097152)
+<<<<<<< HEAD
 P=32
+=======
+P=16
+>>>>>>> e62045094ed64c7aba1a77924fa942564ef7f2fa
 i=0
 for bench in xalancbmk povray #xalancbmk cactusADM zeusmp astar bwaves bzip2  calculix gamess gcc GemsFDTD gobmk gromacs h264ref hmmer lbm leslie3d libquantum  milc namd omnetpp povray sjeng soplex tonto mcf
 #for bench in gcc xalancbmk zeusmp

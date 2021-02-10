@@ -654,6 +654,8 @@ virtual void sendGhostClear();
      */
     PacketPtr tempBlockWriteback;
 
+    std::stack<Addr> upgradeQueue;
+
     /**
      * Send the outstanding tempBlock writeback. To be called after
      * recvAtomic finishes in cases where the block we filled is in

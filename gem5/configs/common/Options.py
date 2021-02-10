@@ -422,6 +422,8 @@ def addSEOptions(parser):
     parser.add_option("--wait-gdb", default=False,
                       help="Wait for remote GDB to connect.")
 
+default_kernel = 'vmlinux.arm64'
+default_root_device = '/dev/vda1'
 
 
 def addFSOptions(parser):
@@ -432,7 +434,7 @@ def addFSOptions(parser):
             help="Prevent simulated time from getting ahead of real time")
 
     # System options
-    parser.add_option("--kernel", action="store", type="string")
+    parser.add_option("--kernel", action="store", default=default_kernel, type="string")
     parser.add_option("--os-type", action="store", type="choice",
                       choices=os_types[str(buildEnv['TARGET_ISA'])],
                       default="linux",
@@ -480,7 +482,7 @@ def addFSOptions(parser):
     parser.add_option("--disk-image", action="append", type="string",
             default=[], help="Path to the disk images to use.")
     parser.add_option("--root-device", action="store", type="string",
-            default=None, help="OS device name for root partition")
+            default=default_root_device, help="OS device name for root partition")
 
     # Command line options
     parser.add_option("--command-line", action="store", type="string",

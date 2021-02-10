@@ -1,0 +1,20 @@
+perlbench: perlbench
+gcc: gcc
+mcf: mcf_s
+omnetpp: omnetpp
+xalancbmk: xalancbmk
+x264: x264
+deepsjeng: deepsjeng
+leela: leela
+exchange2: exchange2
+xz: 
+bwaves: bwaves
+cactusBSSN: cactusBSSN
+lbm: lbm_s 
+wrf: wrf
+cam4: cam4
+pop2: pop2
+imagick: imagick
+nab: nab
+fotonik3d: fotonik3d
+roms: roms
