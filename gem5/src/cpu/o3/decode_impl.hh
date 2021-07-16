@@ -687,6 +687,7 @@ DefaultDecode<Impl>::decodeInsts(ThreadID tid)
         // queue.  The next instruction may not be valid, so check to
         // see if branches were predicted correctly.
 	inst->timestamp = cpu->timestamp;
+	inst->timeGuard = 0;
 	cpu->timestamp++;
 	//GhostMinion: set inst timestamp
         toRename->insts[toRenameIndex] = inst;

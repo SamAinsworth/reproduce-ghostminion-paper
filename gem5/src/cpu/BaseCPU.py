@@ -127,6 +127,7 @@ class BaseCPU(ClockedObject):
 
     system = Param.System(Parent.any, "system object")
     cpu_id = Param.Int(-1, "CPU identifier")
+    blockContention = Param.Bool(False, "Schedule non-pipelined FUs in timestamp order")
     socket_id = Param.Unsigned(0, "Physical Socket identifier")
     numThreads = Param.Unsigned(1, "number of HW thread contexts")
     pwr_gating_latency = Param.Cycles(300,

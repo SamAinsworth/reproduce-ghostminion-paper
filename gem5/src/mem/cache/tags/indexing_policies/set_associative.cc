@@ -75,6 +75,11 @@ SetAssociative::getPossibleEntries(const Addr addr, const uint64_t timestamp = 0
     std::vector<ReplaceableEntry*> newSet;
     for (std::vector<ReplaceableEntry*>::iterator it = setz.begin(); it != setz.end(); ++it) {
 	ReplaceableEntry* t = *it;
+	//This treats free slots and higher timestamps as identical -- and chooses arbitrarily.
+	//A better policy is probably to prioritise free slots over higher timestamps, and if
+	//there are none, choose the highest timestamp. That's because the highest timestamp
+	//is the only one that knows the minion is full -- so such prioritisation of
+	//free slots would otherwise leak information...
 	if(timestamp == 0 || (static_cast<CacheBlk*>(t))->timestamp == 0 || (static_cast<CacheBlk*>(t))->timestamp > timestamp) {
 		newSet.push_back(t);
 	}

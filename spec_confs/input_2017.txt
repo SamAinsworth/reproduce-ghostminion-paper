@@ -16,4 +16,4 @@ pop2:
 imagick: 
 nab: 
 fotonik3d: 
-roms: ocean_benchmark3.in.x
+roms: ocean_benchmark3.in

@@ -54,7 +54,7 @@ cd gem5/system/arm/dt
 make
 cd $BASE
 
-cd arm-gem5-rsp/parsec_rcs
+cd arm-gem5-rsk/parsec_rcs
 for bench in blackscholes canneal ferret fluidanimate freqmine streamcluster swaptions
 do
   bash gen_rcs.sh -i simmedium -p $bench -n 4

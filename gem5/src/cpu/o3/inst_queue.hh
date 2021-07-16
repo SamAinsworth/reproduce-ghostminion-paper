@@ -445,6 +445,9 @@ class InstructionQueue
      */
     std::vector<bool> regScoreboard;
 
+    std::vector<uint64_t> nextInstTime;
+    std::vector<uint64_t> issuedInstTime;
+
     /** Adds an instruction to the dependency graph, as a consumer. */
     bool addToDependents(const DynInstPtr &new_inst);
 

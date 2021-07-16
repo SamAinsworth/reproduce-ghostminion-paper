@@ -2,7 +2,7 @@ cd ..
 BASE=$(pwd)
 mkdir specmnt
 mkdir SPEC
-sudo mount -o loop *.iso specmnt
+sudo mount -o loop cpu2006*.iso specmnt
 cd specmnt
 ./install.sh -d ../SPEC
 cd ..

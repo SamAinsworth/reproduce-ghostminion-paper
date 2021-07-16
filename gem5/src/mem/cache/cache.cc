@@ -150,6 +150,11 @@ void BaseCache::commitLoad(Addr addr, Addr pc) {
 void BaseCache::ghostClear() {
     if(!hasGhost) return;
 		PacketList writebacks;
+	//This is an overapproximation. It should really just clear the ones
+	// above the timestamp of the instruction that was mispredicted.
+	//That's faster and more secure; it's only left like this
+	//because it wouldn't reduce performance if fixed.
+
     for (unsigned blk_index = 0; blk_index < ((BaseSetAssoc*)ghosttags)->numBlocks; blk_index++) {
         // Locate next cache block
         CacheBlk* blk = &(((BaseSetAssoc*)ghosttags)->blks[blk_index]);

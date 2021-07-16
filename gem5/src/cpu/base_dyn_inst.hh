@@ -217,6 +217,7 @@ class BaseDynInst : public ExecContext, public RefCounted
     unsigned memReqFlags;
 
     uint64_t timestamp;
+    uint64_t timeGuard;
 
     /** The size of the request */
     unsigned effSize;

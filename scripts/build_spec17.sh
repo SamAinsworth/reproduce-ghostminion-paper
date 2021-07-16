@@ -11,6 +11,6 @@ rm -r specmnt
 cp spec_confs/aarch64_17.cfg SPEC17/config
 cd SPEC17
 . ./shrc   
-runcpu --config=aarch64_17.cfg --action=build perlbench gcc mcf omnetpp xalancbmk x264 deepsjeng leela exchange2 xz bwaves cactusBSSN lbm wrf cam4 pop2 imagick nab fotonik3d roms -I
-runcpu --config=aarch64_17.cfg --action=run --size=ref perlbench gcc mcf omnetpp xalancbmk x264 deepsjeng leela exchange2 xz bwaves cactusBSSN lbm wrf cam4 pop2 imagick nab fotonik3d roms --noreportable --iterations=1  -I
+runcpu --config=aarch64_17.cfg --action=build perlbench_s gcc_s mcf_s omnetpp_s xalancbmk_s x264_s deepsjeng_s leela_s exchange2_s xz_s bwaves_s cactuBSSN_s lbm_s wrf_s cam4_s pop2_s imagick_s nab_s fotonik3d_s roms_s -I
+runcpu --config=aarch64_17.cfg --action=run --size=ref perlbench_s gcc_s mcf_s omnetpp_s xalancbmk_s x264_s deepsjeng_s leela_s exchange2_s xz_s bwaves_s cactuBSSN_s lbm_s wrf_s cam4_s pop2_s imagick_s nab_s fotonik3d_s roms_s --noreportable --iterations=1  -I
 cd $BASE/scripts

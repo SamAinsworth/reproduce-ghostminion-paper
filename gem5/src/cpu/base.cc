@@ -121,7 +121,7 @@ CPUProgressEvent::description() const
 }
 
 BaseCPU::BaseCPU(Params *p, bool is_checker)
-    : ClockedObject(p), instCnt(0), _cpuId(p->cpu_id), _socketId(p->socket_id),
+    : ClockedObject(p), instCnt(0), _cpuId(p->cpu_id), block_contention(p->blockContention), _socketId(p->socket_id),
       _instRequestorId(p->system->getRequestorId(this, "inst")),
       _dataRequestorId(p->system->getRequestorId(this, "data")),
       _taskId(ContextSwitchTaskId::Unknown), _pid(invldPid),

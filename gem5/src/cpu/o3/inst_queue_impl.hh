@@ -111,6 +111,9 @@ InstructionQueue<Impl>::InstructionQueue(O3CPU *cpu_ptr, IEW *iew_ptr,
     // Resize the register scoreboard.
     regScoreboard.resize(numPhysRegs);
 
+    nextInstTime.resize(fuPool->size());
+    issuedInstTime.resize(fuPool->size());
+
     //Initialize Mem Dependence Units
     for (ThreadID tid = 0; tid < Impl::MaxThreads; tid++) {
         memDepUnit[tid].init(params, tid);
@@ -411,6 +414,13 @@ InstructionQueue<Impl>::resetState()
         regScoreboard[i] = false;
     }
 
+    nextInstTime.resize(0);
+    issuedInstTime.resize(0);
+    nextInstTime.resize(fuPool->size());
+    issuedInstTime.resize(fuPool->size());
+
+
+
     for (ThreadID tid = 0; tid < Impl::MaxThreads; ++tid) {
         squashedSeqNum[tid] = 0;
     }
@@ -604,6 +614,14 @@ InstructionQueue<Impl>::insert(const DynInstPtr &new_inst)
     // Have this instruction set itself as the producer of its destination
     // register(s).
     addToProducers(new_inst);
+
+    OpClass  op_class = new_inst->opClass();
+
+
+    if(!fuPool->isPipelined(op_class)) {
+	new_inst->timeGuard = nextInstTime[op_class];
+	nextInstTime[op_class] = new_inst->timestamp;
+    }
 
     if (new_inst->isMemRef()) {
         memDepUnit[new_inst->threadNumber].insert(new_inst);
@@ -815,6 +833,31 @@ InstructionQueue<Impl>::scheduleReadyInsts()
         }
 
         assert(issuing_inst->seqNum == (*order_it).oldestInst);
+	int timeGuarded = 0;
+	//This is where contention blocking, to stop backwards-in-time attacks
+	//on non-pipelined units such as the divider (ie SpectreRewind), is implemented
+	// (as opposed to backwards-in-time attacks via the cache,
+	// or forwards-in-time attacks like a standard Spectre).
+
+	//I don't enable it in the standard setup because it paradoxically
+	//makes performance faster (there are plausible reasons for wanting to
+	//run non-pipelined instructions in-order anyway, even ignoring security
+	//benefits). YOU can enable it though -- using the --blockContention option
+	//on the command line.
+
+
+	if(!fuPool->isPipelined(op_class) && cpu->block_contention) {
+
+		if(issuing_inst->timeGuard > issuedInstTime[op_class] && issuedInstTime[op_class] != 0 && !issuing_inst->isSquashed()) {
+			//printf("timeguarding until %ld, currently %ld\n", issuing_inst->timeGuard, issuedInstTime[op_class]);
+			timeGuarded = 1;
+		} else if (issuing_inst->timestamp >= issuedInstTime[op_class] || issuing_inst->timestamp == 0) {
+			assert(issuing_inst->timestamp >= issuedInstTime[op_class] || issuing_inst->timestamp == 0);
+			//printf("timeguard now %ld, was %ld\n", issuing_inst->timestamp, issuedInstTime[op_class]);
+			issuedInstTime[op_class] = issuing_inst->timestamp;
+		}
+	}
+
 
         if (issuing_inst->isSquashed()) {
             readyInsts[op_class].pop();
@@ -837,7 +880,7 @@ InstructionQueue<Impl>::scheduleReadyInsts()
         Cycles op_latency = Cycles(1);
         ThreadID tid = issuing_inst->threadNumber;
 
-        if (op_class != No_OpClass) {
+        if (op_class != No_OpClass && !timeGuarded) {
             idx = fuPool->getUnit(op_class);
             if (issuing_inst->isFloating()) {
                 fpAluAccesses++;
@@ -846,6 +889,9 @@ InstructionQueue<Impl>::scheduleReadyInsts()
             } else {
                 intAluAccesses++;
             }
+	    if(timeGuarded) {
+		idx = FUPool::NoFreeFU;
+	    }
             if (idx > FUPool::NoFreeFU) {
                 op_latency = fuPool->getOpLatency(op_class);
             }
@@ -1229,6 +1275,14 @@ InstructionQueue<Impl>::doSquash(ThreadID tid)
         } else {
             intInstQueueWrites++;
         }
+
+        OpClass op_class = squashed_inst->opClass();
+
+	if(!fuPool->isPipelined(op_class) && squashed_inst->timeGuard <= nextInstTime[op_class]) {
+			//printf("squashed timeguard now %ld, was %ld\n", squashed_inst->timeGuard, nextInstTime[op_class]);
+			nextInstTime[op_class] = squashed_inst->timeGuard;
+		
+	}
 
         // Only handle the instruction if it actually is in the IQ and
         // hasn't already been squashed in the IQ.
