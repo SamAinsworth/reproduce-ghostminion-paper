@@ -32,13 +32,13 @@ Installation and Building
 You can install this repository as follows:
 
 ```
-git clone https://github.com/SamAinsworth/reproduce-micro2021-ghostminion-paper
+git clone https://github.com/SamAinsworth/reproduce-ghostminion-paper
 ```
 
 All scripts from here onwards are assumed to be run from the scripts directory, from the root of the repository:
 
 ```
-cd reproduce-micro2021-ghostminion-paper
+cd reproduce-ghostminion-paper
 cd scripts
 ```
 
