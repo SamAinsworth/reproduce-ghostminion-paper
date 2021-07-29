@@ -127,8 +127,58 @@ On the flip side, if you wanted to reproduce more experiments from the paper, or
 
 These options are also documented in gem5/configs/common/Options.py.
 
+Customisation of Options
+==============================
+
+The gem5 options we use in GhostMinion are as follows:
+
+
+```
+    parser.add_option("--ghostminion", action="store_true",default=False)
+```
+Enables GhostMinion itself, by placing a GhostMinion at the side of each L1 data cache.
+
+```
+parser.add_option("--iminion", action="store_true",default=False)
+```
+Same as --ghostminion, but for instruction rather than data caches.
+    
+
+```
+parser.add_option("--cache_coher", action="store_true",default=False)
+```
+Enables cache coherence protection (needs --ghostminion).
+
+
+```
+    parser.add_option("--prefetch_ordered", action="store_true",default=False)
+
+```
+Enables prefetching only based on committed state (needs --ghostminion).
+
+
+```
+    parser.add_option("--ghost_size", type="string", default="2kB")
+
+```
+Changes the size of each GhostMinion (default 2kB).
+
+
+```
+    parser.add_option("--ghost_assoc", type="int", default="2")
+
+``` 
+Changes the associativity of each GhostMinion (default 2).
+
+```
+    parser.add_option("--block_contention", action="store_true",default=False)
+```
+
+Adds protection against backwards-in-time attacks that use in-core units, such as the FPU, by scheduling operations that use non-pipelined units in order with respect to other operations that use the same unit. This speeds up both GhostMinion and the baseline system, so we switch it off by default to avoid masking other overheads.
+
+
 Validation of results
-====================================================
+==============================
 
 To generate graphs of the data, from the scripts folder run
 
