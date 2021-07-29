@@ -129,6 +129,7 @@ def addNoISAOptions(parser):
     parser.add_option("--ghostminion", action="store_true",default=False)
     parser.add_option("--cache_coher", action="store_true",default=False)
     parser.add_option("--iminion", action="store_true",default=False)
+    parser.add_option("--block_contention", action="store_true",default=False)
     parser.add_option("--prefetch_ordered", action="store_true",default=False)
     parser.add_option("--ghost_size", type="string", default="2kB")
     parser.add_option("--ghost_assoc", type="int", default="2")
