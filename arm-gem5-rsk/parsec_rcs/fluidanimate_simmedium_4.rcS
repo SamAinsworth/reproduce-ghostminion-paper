@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PARSEC_DIR="/home/root/parsec-3.0"
+cd $PARSEC_DIR
+pwd
+
+source ./env.sh
+parsecmgmt -a run -p fluidanimate -c gcc-hooks -i simmedium -n 4
+m5 exit

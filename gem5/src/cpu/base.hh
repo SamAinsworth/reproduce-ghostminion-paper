@@ -115,7 +115,11 @@ class BaseCPU : public ClockedObject
     // therefore no setCpuId() method is provided
     int _cpuId;
 
+  public:
+
     int block_contention;
+
+  protected:
 
     /** Each cpu will have a socket ID that corresponds to its physical location
      * in the system. This is usually used to bucket cpu cores under single DVFS

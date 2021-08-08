@@ -50,6 +50,7 @@ cd aarch_system
 tar -xvf aarch-system-201901106.tar.bz2
 cd ..
 mv aarch64-ubuntu-trusty-headless.img aarch_system/disks
+cd $BASE
 cd gem5/system/arm/dt
 make
 cd $BASE
@@ -61,6 +62,7 @@ do
 done
 cd $BASE
 mkdir run_parsec
+cd run_parsec
 for bench in blackscholes canneal ferret fluidanimate freqmine streamcluster swaptions
 do
   mkdir $bench

@@ -11,7 +11,7 @@ do
   ((i=i%P)); ((i++==0)) && wait
   (
   cd run_parsec/$bench
-  $BASE/scripts/gem5_scripts/run_ghostminion_checkpoint.sh $BASE/arm-gem5-rsk/parsec_rcs/$bench\_simmedium_4.rcS
+  $BASE/scripts/gem5_scripts/run_ghostminion_fs_checkpoint.sh $BASE/arm-gem5-rsk/parsec_rcs/$bench\_simmedium_4.rcS
   ) &
 done
 cd $BASE/scripts
