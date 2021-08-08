@@ -79,6 +79,24 @@ If you wish to run the Parsec workloads in FS mode,
 
 Will download Parsec itself, along with the Arm gem5 research kit and an Ubuntu distribution. This has more dependencies so is expected to be more brittle than the SPEC workflows.
 
+There is also a simplified Parsec setup that uses prebuilt binaries and a prebuilt Ubuntu image. Download 
+
+```
+aarch64-ubuntu-trusty-headless.img.tar.gz
+```
+
+From the Releases section of the Github repository, and place it in 
+
+```
+reproduce-ghostminion-paper/aarch_system/disks
+```
+
+Then, in the scripts directory, run
+
+```
+build_parsec_simplified.sh
+```
+
 
 Running experimental workflows
 ==============================
