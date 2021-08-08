@@ -94,7 +94,7 @@ reproduce-ghostminion-paper/aarch_system/disks
 Then, in the scripts directory, run
 
 ```
-build_parsec_simplified.sh
+./build_parsec_simplified.sh
 ```
 
 
