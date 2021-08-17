@@ -53,7 +53,7 @@ Then, in the scripts folder, to compile the GhostMinion simulator, run
 ./build.sh
 ```
 
-To compile SPEC CPU2006, first place your SPEC .iso file (other images can be used by modifying the build_spec06.sh script first) in the root directory of the repository (next to the file 'PLACE_SPEC_ISO_HERE'). 
+To compile SPEC CPU2006, first place your SPEC .iso file (other images can be used by modifying the build_spec06.sh script first) in the root directory of the repository (next to the file 'PLACE_SPEC_ISO_HERE'). The instructions here assume V1.0 -- see Troubleshooting below to modify it to work with V1.2
 
 Name it "cpu2006.iso" or change the script as appropriate.
 
@@ -220,6 +220,11 @@ The raw data will be accessible in the run directories within the spec or parsec
 
 
 If anything is unclear, or any unexpected results occur, please report it to the author.
+
+Troubleshooting
+=======
+
+With the SPEC CPU2006 V1.2 iso, the input file for GCC was changed from "166.i" to "166.in". To use the automated scripts with the V1.2 iso, change the relevant line in spec_confs/args.txt.
 
 Author
 =======
