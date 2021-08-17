@@ -5,8 +5,8 @@ for bench in blackscholes canneal ferret fluidanimate freqmine streamcluster swa
 do
   echo $bench >> $BASE/plots/slowdown.data
 
-  base=$(grep sim_se $BASE/run_parsec/$bench/m5out/statsno.txt | awk '{print $2}')
-  slow=$(grep sim_se $BASE/run_parsec/$bench/m5out/statsghostminion.txt  | awk '{print $2}')
+  base=$(grep sim_se $BASE/run_parsec/$bench/m5out/statsno.txt | head -1 | awk '{print $2}')
+  slow=$(grep sim_se $BASE/run_parsec/$bench/m5out/statsghostminion.txt  | head -1 | awk '{print $2}')
   echo $n $(echo "scale=3;$slow / $base" | bc -l) >> $BASE/plots/slowdown.data
   echo "" >> $BASE/plots/slowdown.data
 done
