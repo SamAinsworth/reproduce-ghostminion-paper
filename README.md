@@ -226,7 +226,7 @@ Troubleshooting
 
 * With the SPEC CPU2006 V1.2 iso, the input file for GCC was changed from "166.i" to "166.in". To use the automated scripts with the V1.2 iso, change the relevant line in spec_confs/args.txt.
 
-* SPECspeed 2017 requires a lot of memory to run workloads in gem5 (up to 20GB+ per benchmark). You may get system out-of-memory errors without this, and without large amounts of RAM available, gem5 will run its SPECspeed 2017 simulations in sequence rather than in parallel to partially mitigate this.
+* SPECspeed 2017 requires a lot of memory to run workloads in gem5 (up to 20GB+ per benchmark). You may get system out-of-memory errors without this (especially with xalancbmk, roms and bwaves), and without large amounts of RAM available, gem5 will run its SPECspeed 2017 simulations in sequence rather than in parallel to partially mitigate this.
 
 * Some compilers produce ``fatal: syscall chdir (#49) unimplemented'' for omnetpp on SPECspeed 2017. This is a syscall that the version of gem5 we use does not emulate, but the version of aarch64-gnu-linux-gcc we used did not produce this. Wrf can also produce a similar syscall issue, likely caused by compiler.
 
