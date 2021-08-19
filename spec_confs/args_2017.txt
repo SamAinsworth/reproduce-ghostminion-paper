@@ -4,12 +4,12 @@ mcf: inp.in
 omnetpp: -c General -r 0
 xalancbmk: -v t5.xml xalanc.xsl
 x264: --pass 1 --stats x264_stats.log --bitrate 1000 --frames 1000 -o BuckBunny_New.264 BuckBunny.yuv 1280x720
-deepsjeg: ref.txt
+deepsjeng: ref.txt
 leela: ref.sgf 
 exchange2: 6 
 xz: cpu2006docs.tar.xz 6643 055ce243071129412e9dd0b3b69a21654033a9b723d874b2015c774fac1553d9713be561ca86f74e4f16f22e664fc17a79f30caa5ad2c04fbc447549c2810fae 10360782721111795472 4 
 bwaves: bwaves_1
-cactusBSSN: spec_ref.par
+cactuBSSN: spec_ref.par
 lbm: 2000 reference.dat 0 0 200_200_260_ldc.of 
 wrf: 
 cam4: 

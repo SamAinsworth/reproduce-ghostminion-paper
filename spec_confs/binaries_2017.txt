@@ -7,8 +7,9 @@ x264: x264_s
 deepsjeng: deepsjeng_s
 leela: leela_s
 exchange2: exchange2_s
+xz: xz_s
 bwaves: speed_bwaves
-cactusBSSN: cactusBSSN_s
+cactuBSSN: cactuBSSN_s
 lbm: lbm_s 
 wrf: wrf_s
 cam4: cam4_s
