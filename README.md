@@ -230,7 +230,7 @@ Troubleshooting
 
 * Some compilers produce ``fatal: syscall chdir (#49) unimplemented'' for omnetpp on SPECspeed 2017. This is a syscall that the version of gem5 we use does not emulate, but the version of aarch64-gnu-linux-gcc we used did not produce this. Wrf can also produce a similar syscall issue, likely caused by compiler.
 
-* The final (non-timed) part of Streamcluster in Parsec fails to run with and without GhostMinion modification s in this version of gem5. This is innocuous, as the timed region-of-interest completes.
+* The final (non-timed) part of Streamcluster in Parsec fails to run with and without GhostMinion modifications in this version of gem5. This is innocuous, as the timed region-of-interest completes.
 
 
 Author
