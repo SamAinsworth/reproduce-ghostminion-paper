@@ -45,7 +45,7 @@ df #check that the Available space for disk_mnt is increased
 sudo cp -r $BASE/parsec-3.0 disk_mnt/home/root # copy the compiled parsec-3.0 to the image
 sudo umount disk_mnt
 rm disk_mnt
-mdkir aarch_system
+mkdir aarch_system
 cd aarch_system
 tar -xvf aarch-system-201901106.tar.bz2
 cd ..
