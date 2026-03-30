@@ -58,6 +58,9 @@ class ArmTableWalker(ClockedObject):
 
     sys = Param.System(Parent.any, "system object parameter")
 
+    # Add the GhostMinion toggle (defaults to False)
+    enable_ghost_minion = Param.Bool(False, "Enable GhostMinion speculative PTW defenses")
+
 class ArmTLB(BaseTLB):
     type = 'ArmTLB'
     cxx_class = 'ArmISA::TLB'

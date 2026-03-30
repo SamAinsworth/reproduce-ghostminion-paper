@@ -765,6 +765,8 @@ class SyscallTable64 :
         {  base + 269, "sendmmsg" },
         {  base + 270, "process_vm_readv" },
         {  base + 271, "process_vm_writev" },
+        { base + 278, "getrandom", ignoreFunc },
+        { base + 293, "rseq", ignoreFunc },
         { base + 1024, "open", openFunc<ArmLinux64> },
         { base + 1025, "link" },
         { base + 1026, "unlink", unlinkFunc },

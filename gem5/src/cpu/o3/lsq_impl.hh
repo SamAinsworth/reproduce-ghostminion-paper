@@ -725,11 +725,15 @@ LSQ<Impl>::pushRequest(const DynInstPtr& inst, bool isLoad, uint8_t *data,
         // a strictly ordered load
         inst->getFault() = NoFault;
 
+        // Ghost Minion: set request timestamp *before* TLB so the TLB can
+        // enforce timing (older instructions must not see fills from younger).
+        req->timestamp = !isLoad || htm_cmd ? 0 : inst->timestamp;
+
         req->initiateTranslation();
     }
 
-	//TODO?: add timestamp to request.
-	req->timestamp = !isLoad || htm_cmd ? 0 : inst->timestamp;
+    // Ensure timestamp is set when reusing a request (translationStarted path).
+    req->timestamp = !isLoad || htm_cmd ? 0 : inst->timestamp;
 
     /* This is the place were instructions get the effAddr. */
     if (req->isTranslationComplete()) {

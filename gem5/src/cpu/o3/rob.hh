@@ -144,6 +144,10 @@ class ROB
      */
     void retireHead(ThreadID tid);
 
+    // GhostMinion: Shift all speculative blocks above target_timestamp
+    // down by one epoch after a branch is confirmed correct.
+    void flattenTimestamp(ThreadID tid, uint64_t target_timestamp);
+
     /** Is the oldest instruction across all threads ready. */
 //    bool isHeadReady();
 

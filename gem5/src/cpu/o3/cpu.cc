@@ -83,6 +83,13 @@ FullO3CPU<Impl>::FullO3CPU(DerivO3CPUParams *params)
     : BaseO3CPU(params),
       itb(params->itb),
       dtb(params->dtb),
+
+      // De-speculative Me: Resolution-based selective speculation state (per-thread)
+      //   1. state init, knowing thread count.
+      lastUnresolvedBranchSeq(numThreads, 0),
+      resolvedBranchSeq(numThreads, 0),
+      ctrlResolutionEpoch(numThreads, 0),
+
       tickEvent([this]{ tick(); }, "FullO3CPU tick",
                 false, Event::CPU_Tick_Pri),
       threadExitEvent([this]{ exitThreads(); }, "FullO3CPU exit threads",
@@ -596,6 +603,14 @@ FullO3CPU<Impl>::startup()
     rename.startupStage();
     commit.startupStage();
     timestamp = 0;
+
+    // De-speculative Me: Resolution-based selective speculation state (per-thread)
+    //   1. startup init.
+    for (ThreadID tid = 0; tid < numThreads; ++tid) {
+        lastUnresolvedBranchSeq[tid] = 0;
+        resolvedBranchSeq[tid] = 0;
+        ctrlResolutionEpoch[tid] = 0;
+    }
 }
 
 template <class Impl>

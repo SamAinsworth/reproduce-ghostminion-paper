@@ -1,0 +1,51 @@
+Number of Simulations: 20000,  Number of threads: 4 Number of swaptions: 32
+[HOOKS] Entering ROI
+[GEM5]  Beginning of ROI
+[GEM5] Stats dumped.
+[GEM5] Total time spent in ROI: 0.490s
+[HOOKS] Leaving ROI
+Swaption 0: [SwaptionPrice: 6.9319565131 StdError: 0.0009063581] 
+Swaption 1: [SwaptionPrice: 3.2383626469 StdError: 0.0006294997] 
+Swaption 2: [SwaptionPrice: 0.8540378899 StdError: 0.0002340970] 
+Swaption 3: [SwaptionPrice: 6.4811546688 StdError: 0.0011927061] 
+Swaption 4: [SwaptionPrice: 79.7699788268 StdError: 0.0138308670] 
+Swaption 5: [SwaptionPrice: 6.8636585104 StdError: 0.0016411811] 
+Swaption 6: [SwaptionPrice: 81.2911624260 StdError: 0.0118384782] 
+Swaption 7: [SwaptionPrice: 3.0595092399 StdError: 0.0004400010] 
+Swaption 8: [SwaptionPrice: 112.3456009976 StdError: 0.0139418526] 
+Swaption 9: [SwaptionPrice: 3.0596526260 StdError: 0.0004384719] 
+Swaption 10: [SwaptionPrice: 12.0734051020 StdError: 0.0020513222] 
+Swaption 11: [SwaptionPrice: 24.0337244128 StdError: 0.0030583031] 
+Swaption 12: [SwaptionPrice: 96.6881275113 StdError: 0.0174944850] 
+Swaption 13: [SwaptionPrice: 1.1505579752 StdError: 0.0002766834] 
+Swaption 14: [SwaptionPrice: 9.2835893575 StdError: 0.0015099404] 
+Swaption 15: [SwaptionPrice: 9.6508757485 StdError: 0.0014477457] 
+Swaption 16: [SwaptionPrice: 22.3135616769 StdError: 0.0049362093] 
+Swaption 17: [SwaptionPrice: 191.7092913789 StdError: 0.0365699035] 
+Swaption 18: [SwaptionPrice: 1.7117202454 StdError: 0.0005497052] 
+Swaption 19: [SwaptionPrice: 122.2914374412 StdError: 0.0167192229] 
+Swaption 20: [SwaptionPrice: 1.6308704819 StdError: 0.0004416247] 
+Swaption 21: [SwaptionPrice: 3.4206341314 StdError: 0.0008649877] 
+Swaption 22: [SwaptionPrice: 0.0000185320 StdError: 0.0000032116] 
+Swaption 23: [SwaptionPrice: 20.6068075167 StdError: 0.0041121454] 
+Swaption 24: [SwaptionPrice: 60.5870431262 StdError: 0.0091689780] 
+Swaption 25: [SwaptionPrice: 23.2934484237 StdError: 0.0034890920] 
+Swaption 26: [SwaptionPrice: 197.3252806050 StdError: 0.0312635448] 
+Swaption 27: [SwaptionPrice: 86.7856537114 StdError: 0.0149684898] 
+Swaption 28: [SwaptionPrice: 5.7426008737 StdError: 0.0010562060] 
+Swaption 29: [SwaptionPrice: 2.6783493053 StdError: 0.0006944337] 
+Swaption 30: [SwaptionPrice: 59.0563611114 StdError: 0.0091514735] 
+Swaption 31: [SwaptionPrice: 23.8756194750 StdError: 0.0031233886] 
+[HOOKS] Total time spent in ROI: 0.490s
+[HOOKS] Terminating
+
+real	0m0.492s
+user	0m1.892s
+sys	0m0.004s
+[PARSEC] [----------    End of output    ----------]
+[PARSEC]
+[PARSEC] BIBLIOGRAPHY
+[PARSEC]
+[PARSEC] [1] Bienia. Benchmarking Modern Multiprocessors. Ph.D. Thesis, 2011.
+[PARSEC]
+[PARSEC] Done.

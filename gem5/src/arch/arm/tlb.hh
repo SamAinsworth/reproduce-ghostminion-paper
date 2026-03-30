@@ -180,6 +180,12 @@ class TLB : public BaseTLB
         mutable Stats::Scalar prefetchFaults;
         mutable Stats::Scalar domainFaults;
         mutable Stats::Scalar permsFaults;
+        /** Lookups where Ghost Minion request_timestamp != 0 (O3 loads) */
+        mutable Stats::Scalar ghostMinionLookupsNonzeroReqTs;
+        /** TLB hits skipped: entry.timestamp > request_timestamp */
+        mutable Stats::Scalar ghostMinionStrictSkips;
+        /** Inserts whose TlbEntry.timestamp was non-zero at fill time */
+        mutable Stats::Scalar ghostMinionInsertsNonzeroEntryTs;
 
         Stats::Formula readAccesses;
         Stats::Formula writeAccesses;
@@ -206,12 +212,13 @@ class TLB : public BaseTLB
      * @param hyp if the lookup is done from hyp mode
      * @param functional if the lookup should modify state
      * @param ignore_asn if on lookup asn should be ignored
+     * @param request_timestamp Ghost Minion: 0 = see all; else only hit if entry.timestamp==0 or entry.timestamp<=request_timestamp
      * @return pointer to TLB entry if it exists
      */
     TlbEntry *lookup(Addr vpn, uint16_t asn, uint8_t vmid, bool hyp,
                      bool secure, bool functional,
                      bool ignore_asn, ExceptionLevel target_el,
-                     bool in_host);
+                     bool in_host, uint64_t request_timestamp = 0);
 
     virtual ~TLB();
 
@@ -313,6 +320,8 @@ class TLB : public BaseTLB
         // needed for x86 only
         panic("demapPage() is not implemented.\n");
     }
+
+    void promoteEntry(Addr vaddr, ThreadContext *tc) override;
 
     /**
      * Do a functional lookup on the TLB (for debugging)

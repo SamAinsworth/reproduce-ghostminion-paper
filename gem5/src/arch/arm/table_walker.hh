@@ -708,6 +708,12 @@ class TableWalker : public ClockedObject
         uint8_t vmid;
         bool    isHyp;
 
+        /** Flag indicating if the walk has been squashed */
+        bool isSquashed;
+
+        /** Timestamp for remembering TLB miss */
+        uint64_t strictnessTS;
+
         /** Translation state for delayed requests */
         TLB::Translation *transState;
 
@@ -835,6 +841,9 @@ class TableWalker : public ClockedObject
     /** Indicates whether this table walker is part of the stage 2 mmu */
     const bool isStage2;
 
+    /** GhostMinion Toggle */
+    bool enableGhostMinion;
+
     /** TLB that is initiating these table walks */
     TLB *tlb;
 
@@ -893,6 +902,9 @@ class TableWalker : public ClockedObject
 
     void init() override;
 
+    // Quick check for the CPU
+    bool hasGhostMinion() const { return enableGhostMinion; }
+
     bool haveLPAE() const { return _haveLPAE; }
     bool haveVirtualization() const { return _haveVirtualization; }
     bool haveLargeAsid64() const { return _haveLargeAsid64; }
@@ -900,6 +912,10 @@ class TableWalker : public ClockedObject
     void completeDrain();
     DrainState drain() override;
     void drainResume() override;
+
+    /** GhostMinion pipeline signals */
+    void squashWalks(uint64_t squashedTS);
+    void commitWalks(uint64_t committedTS);
 
     Port &getPort(const std::string &if_name,
                   PortID idx=InvalidPortID) override;

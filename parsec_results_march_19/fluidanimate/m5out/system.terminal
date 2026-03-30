@@ -1,0 +1,20 @@
+Number of particles: 102850
+[HOOKS] Entering ROI
+[GEM5]  Beginning of ROI
+[GEM5] Stats dumped.
+[GEM5] Total time spent in ROI: 0.257s
+[HOOKS] Leaving ROI
+Saving file "out.fluid"...
+[HOOKS] Total time spent in ROI: 0.257s
+[HOOKS] Terminating
+
+real	0m0.517s
+user	0m1.105s
+sys	0m0.077s
+[PARSEC] [----------    End of output    ----------]
+[PARSEC]
+[PARSEC] BIBLIOGRAPHY
+[PARSEC]
+[PARSEC] [1] Bienia. Benchmarking Modern Multiprocessors. Ph.D. Thesis, 2011.
+[PARSEC]
+[PARSEC] Done.

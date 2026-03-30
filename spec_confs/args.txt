@@ -5,7 +5,7 @@ cactusADM: benchADM.par
 calculix: -i hyperviscoplastic
 dealII: 23
 gamess: 
-gcc: 166.i
+gcc: 166.in
 GemsFDTD: 
 gobmk: --quiet --mode gtp
 gromacs: -silent -deffnm gromacs -nice 0

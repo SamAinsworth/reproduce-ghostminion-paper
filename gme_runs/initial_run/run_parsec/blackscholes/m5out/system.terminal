@@ -1,0 +1,21 @@
+Num of Options: 16384
+Num of Runs: 100
+Size of data: 655360
+[HOOKS] Entering ROI
+[GEM5]  Beginning of ROI
+[GEM5] Stats dumped.
+[GEM5] Total time spent in ROI: 0.082s
+[HOOKS] Leaving ROI
+[HOOKS] Total time spent in ROI: 0.082s
+[HOOKS] Terminating
+
+real	0m0.175s
+user	0m0.374s
+sys	0m0.004s
+[PARSEC] [----------    End of output    ----------]
+[PARSEC]
+[PARSEC] BIBLIOGRAPHY
+[PARSEC]
+[PARSEC] [1] Bienia. Benchmarking Modern Multiprocessors. Ph.D. Thesis, 2011.
+[PARSEC]
+[PARSEC] Done.

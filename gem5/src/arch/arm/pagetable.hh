@@ -141,6 +141,9 @@ struct TlbEntry : public Serializable
     bool xn;                // Execute Never
     bool pxn;               // Privileged Execute Never (LPAE only)
 
+    /** Ghost Minion: 0 = committed (visible to all); >0 = speculative fill */
+    uint64_t timestamp;
+
     //Construct an entry that maps to physical address addr for SE mode
     TlbEntry(Addr _asn, Addr _vaddr, Addr _paddr,
              bool uncacheable, bool read_only) :
@@ -150,7 +153,7 @@ struct TlbEntry : public Serializable
          domain(DomainType::Client),  mtype(MemoryType::StronglyOrdered),
          longDescFormat(false), isHyp(false), global(false), valid(true),
          ns(true), nstid(true), el(EL0), nonCacheable(uncacheable),
-         shareable(false), outerShareable(false), xn(0), pxn(0)
+         shareable(false), outerShareable(false), xn(0), pxn(0), timestamp(0)
     {
         // no restrictions by default, hap = 0x3
 
@@ -165,7 +168,7 @@ struct TlbEntry : public Serializable
          domain(DomainType::Client), mtype(MemoryType::StronglyOrdered),
          longDescFormat(false), isHyp(false), global(false), valid(false),
          ns(true), nstid(true), el(EL0), nonCacheable(false),
-         shareable(false), outerShareable(false), xn(0), pxn(0)
+         shareable(false), outerShareable(false), xn(0), pxn(0), timestamp(0)
     {
         // no restrictions by default, hap = 0x3
 
@@ -322,6 +325,7 @@ struct TlbEntry : public Serializable
         SERIALIZE_SCALAR(pxn);
         SERIALIZE_SCALAR(ap);
         SERIALIZE_SCALAR(hap);
+        SERIALIZE_SCALAR(timestamp);
         uint8_t domain_ = static_cast<uint8_t>(domain);
         paramOut(cp, "domain", domain_);
     }
@@ -352,6 +356,7 @@ struct TlbEntry : public Serializable
         UNSERIALIZE_SCALAR(pxn);
         UNSERIALIZE_SCALAR(ap);
         UNSERIALIZE_SCALAR(hap);
+        UNSERIALIZE_SCALAR(timestamp);
         uint8_t domain_;
         paramIn(cp, "domain", domain_);
         domain = static_cast<DomainType>(domain_);

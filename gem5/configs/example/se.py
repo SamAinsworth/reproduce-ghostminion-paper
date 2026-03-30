@@ -279,5 +279,15 @@ if options.wait_gdb:
     for cpu in system.cpu:
         cpu.wait_for_remote_gdb = True
 
+if options.ghostminion:
+    for cpu in system.cpu:
+        # Check if we are using a CPU type that actually has a TLB/Walker (like DerivO3CPU)
+        if hasattr(cpu, 'dtb') and hasattr(cpu.dtb, 'walker'):
+            cpu.dtb.walker.enable_ghost_minion = True
+            cpu.itb.walker.enable_ghost_minion = True
+    print("\n===========================================")
+    print("   GhostMinion PTW Defenses: ENABLED       ")
+    print("===========================================\n")
+
 root = Root(full_system = False, system = system)
 Simulation.run(options, root, system, FutureClass)

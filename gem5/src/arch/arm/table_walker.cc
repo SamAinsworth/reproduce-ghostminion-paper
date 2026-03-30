@@ -46,6 +46,8 @@
 #include "cpu/thread_context.hh"
 #include "debug/Checkpoint.hh"
 #include "debug/Drain.hh"
+#include "debug/GhostMinionTLB.hh"
+#include "debug/GhostMinionPTW.hh"
 #include "debug/TLB.hh"
 #include "debug/TLBVerbose.hh"
 #include "dev/dma_device.hh"
@@ -56,7 +58,7 @@ using namespace ArmISA;
 TableWalker::TableWalker(const Params *p)
     : ClockedObject(p),
       stage2Mmu(NULL), port(NULL), requestorId(Request::invldRequestorId),
-      isStage2(p->is_stage2), tlb(NULL),
+      isStage2(p->is_stage2), enableGhostMinion(p->enable_ghost_minion), tlb(NULL),
       currState(NULL), pending(false),
       numSquashable(p->num_squash_per_cycle),
       stats(this),
@@ -137,7 +139,7 @@ TableWalker::WalkerState::WalkerState() :
     pxnTable(false), hpd(false), stage2Req(false),
     stage2Tran(nullptr), timing(false), functional(false),
     mode(BaseTLB::Read), tranType(TLB::NormalTran), l2Desc(l1Desc),
-    delayed(false), tableWalker(nullptr)
+    delayed(false), tableWalker(nullptr), strictnessTS(0), isSquashed(false) // Initialize GhostMinion timestamp
 {
 }
 
@@ -253,6 +255,14 @@ TableWalker::walk(const RequestPtr &_req, ThreadContext *_tc, uint16_t _asid,
     currState->tranType = tranType;
     currState->isSecure = secure;
     currState->physAddrRange = physAddrRange;
+
+    // Capture the GhostMinion timestamp from the incoming TLB request
+    if (enableGhostMinion && currState->req && currState->req->timestamp != 0) {
+        currState->strictnessTS = currState->req->timestamp;
+    } else {
+        currState->strictnessTS = 0;
+        currState->isSquashed = false;
+    }
 
     /** @todo These should be cached or grabbed from cached copies in
      the TLB, all these miscreg reads are expensive */
@@ -1881,6 +1891,35 @@ void
 TableWalker::doL1DescriptorWrapper()
 {
     currState = stateQueues[L1].front();
+    DPRINTF(GhostMinionPTW, "doL1DescriptorWrapper called for vaddr %#x, isSquashed: %d\n",
+            currState->vaddr_tainted, currState->isSquashed);
+
+    // Ghost Minion: Intercept and drop squashed walks
+    if (enableGhostMinion && currState->isSquashed) {
+        DPRINTF(GhostMinionPTW, "Dropping memory response for squashed walk.\n");
+        
+        // 1. Remove the squashed walk from the active queue
+        stateQueues[L1].pop_front(); // (Change index for L2/Long wrappers)
+        
+        // 2. Safely finish the translation state to unblock the CPU port
+        Fault fault = std::make_shared<UnimpFault>("Squashed Speculative PTW");
+        currState->transState->finish(fault, currState->req, currState->tc, currState->mode);
+        stats.walksShortTerminatedAtLevel[0]++;
+        
+        // 3. Unblock the PTW and process the next walk BEFORE deleting
+        pending = false;
+        nextWalk(currState->tc);
+        
+        // 4. Clean up pointers and free the memory
+        currState->req = NULL;
+        currState->tc = NULL;
+        currState->delayed = false;
+        delete currState;
+        currState = NULL;
+        
+        return; 
+    }
+
     currState->delayed = false;
     // if there's a stage2 translation object we don't need it any more
     if (currState->stage2Tran) {
@@ -1937,6 +1976,35 @@ void
 TableWalker::doL2DescriptorWrapper()
 {
     currState = stateQueues[L2].front();
+    DPRINTF(GhostMinionPTW, "doL2DescriptorWrapper called for vaddr %#x, isSquashed: %d\n",
+            currState->vaddr_tainted, currState->isSquashed);
+
+    // Ghost Minion: Intercept and drop squashed walks
+    if (enableGhostMinion && currState->isSquashed) {
+        DPRINTF(GhostMinionPTW, "Dropping memory response for squashed walk.\n");
+        
+        // 1. Remove the squashed walk from the active queue
+        stateQueues[L2].pop_front(); 
+        
+        // 2. Safely finish the translation state to unblock the CPU port
+        Fault fault = std::make_shared<UnimpFault>("Squashed Speculative PTW");
+        currState->transState->finish(fault, currState->req, currState->tc, currState->mode);
+        stats.walksShortTerminatedAtLevel[1]++;
+        
+        // 3. Unblock the PTW and process the next walk BEFORE deleting
+        pending = false;
+        nextWalk(currState->tc);
+        
+        // 4. Clean up pointers and free the memory
+        currState->req = NULL;
+        currState->tc = NULL;
+        currState->delayed = false;
+        delete currState;
+        currState = NULL;
+        
+        return; 
+    }
+
     assert(currState->delayed);
     // if there's a stage2 translation object we don't need it any more
     if (currState->stage2Tran) {
@@ -2002,6 +2070,31 @@ void
 TableWalker::doLongDescriptorWrapper(LookupLevel curr_lookup_level)
 {
     currState = stateQueues[curr_lookup_level].front();
+    DPRINTF(GhostMinionPTW, "doLongDescriptorWrapper called for vaddr %#x, isSquashed: %d, lookup level: %d\n",
+            currState->vaddr_tainted, currState->isSquashed, curr_lookup_level);
+
+    // Ghost Minion: Intercept and drop squashed walks at all levels of long descriptor walks
+    if (enableGhostMinion && currState->isSquashed) {
+        DPRINTF(GhostMinionPTW, "Dropping Long memory response for squashed walk.\n");
+        
+        // Use the variable to pop from the correct queue level
+        stateQueues[curr_lookup_level].pop_front(); 
+        
+        Fault fault = std::make_shared<UnimpFault>("Squashed Speculative PTW");
+        currState->transState->finish(fault, currState->req, currState->tc, currState->mode);
+        
+        pending = false;
+        nextWalk(currState->tc); 
+        
+        currState->req = NULL;
+        currState->tc = NULL;
+        currState->delayed = false;
+        delete currState;
+        currState = NULL;
+        
+        return;
+    }
+
     assert(curr_lookup_level == currState->longDesc.lookupLevel);
     currState->delayed = false;
 
@@ -2070,8 +2163,11 @@ TableWalker::fetchDescriptor(Addr descAddr, uint8_t *data, int numBytes,
 {
     bool isTiming = currState->timing;
 
-    DPRINTF(TLBVerbose, "Fetching descriptor at address: 0x%x stage2Req: %d\n",
-            descAddr, currState->stage2Req);
+    // Grab strictness timestamp from active walker state
+    uint64_t strictnessTS = currState->strictnessTS;
+
+    DPRINTF(TLBVerbose, "Fetching descriptor at address: 0x%x stage2Req: %d, TS: %llu\n",
+            descAddr, currState->stage2Req, strictnessTS);
 
     // If this translation has a stage 2 then we know descAddr is an IPA and
     // needs to be translated before we can access the page table. Do that
@@ -2084,13 +2180,15 @@ TableWalker::fetchDescriptor(Addr descAddr, uint8_t *data, int numBytes,
                 Stage2MMU::Stage2Translation(*stage2Mmu, data, event,
                                              currState->vaddr);
             currState->stage2Tran = tran;
+            // Pass strictnessTS to Stage 2 MMU
             stage2Mmu->readDataTimed(currState->tc, descAddr, tran, numBytes,
-                                     flags);
+                                     flags, strictnessTS);
             fault = tran->fault;
         } else {
+            // Pass strictness TS to Stage 2 MMU
             fault = stage2Mmu->readDataUntimed(currState->tc,
                 currState->vaddr, descAddr, data, numBytes, flags,
-                currState->functional);
+                currState->functional, strictnessTS);
         }
 
         if (fault != NoFault) {
@@ -2108,8 +2206,9 @@ TableWalker::fetchDescriptor(Addr descAddr, uint8_t *data, int numBytes,
         }
     } else {
         if (isTiming) {
+            // Pass strictnessTS to DMA port
             port->dmaAction(MemCmd::ReadReq, descAddr, numBytes, event, data,
-                           currState->tc->getCpuPtr()->clockPeriod(),flags);
+                           currState->tc->getCpuPtr()->clockPeriod(),flags, strictnessTS);
             if (queueIndex >= 0) {
                 DPRINTF(TLBVerbose, "Adding to walker fifo: queue size before adding: %d\n",
                         stateQueues[queueIndex].size());
@@ -2117,12 +2216,18 @@ TableWalker::fetchDescriptor(Addr descAddr, uint8_t *data, int numBytes,
                 currState = NULL;
             }
         } else if (!currState->functional) {
+            // Pass strictness TS to DMA port
             port->dmaAction(MemCmd::ReadReq, descAddr, numBytes, NULL, data,
-                           currState->tc->getCpuPtr()->clockPeriod(), flags);
+                           currState->tc->getCpuPtr()->clockPeriod(), flags, strictnessTS);
             (this->*doDescriptor)();
         } else {
             RequestPtr req = std::make_shared<Request>(
                 descAddr, numBytes, flags, requestorId);
+
+            // Tag the explicit functional request
+            if (strictnessTS != 0) {
+                req->timestamp = strictnessTS;
+            }
 
             req->taskId(ContextSwitchTaskId::DMA);
             PacketPtr  pkt = new Packet(req, MemCmd::ReadReq);
@@ -2202,6 +2307,9 @@ TableWalker::insertTableEntry(DescriptorBase &descriptor, bool longDescriptor)
             descriptor.lookupLevel, static_cast<uint8_t>(descriptor.domain()),
             descriptor.getRawData());
 
+    // Ghost Minion: tag entry with request timestamp (0 = committed)
+    te.timestamp = currState->req ? currState->req->timestamp : 0;
+
     // Insert the entry into the TLB
     tlb->insert(currState->vaddr, te);
     if (!currState->timing) {
@@ -2246,6 +2354,84 @@ TableWalker::pendingChange()
         stats.pendingWalks.sample(pendingReqs, now - pendingChangeTick);
         pendingReqs = n;
         pendingChangeTick = now;
+    }
+}
+/**
+ * Aborts active and pending page walks belonging to a squashed instruction path.
+ * Iterates through the currently active WalkerState and pending walk queues. If a walk 
+     * carries a Strictness Timestamp greater than or equal to the squashedTS, it belongs 
+     * to the mispredicted/faulting speculative path. Its timestamp is cleared so the 
+     * memory response is safely dropped and prevented from leaking into architectural state.
+ * @param squashedTS The strictness timestamp of the squashed instruction.
+ */
+void TableWalker::squashWalks(uint64_t squashedTS)
+{
+    DPRINTF(GhostMinionPTW, "GhostMinion: Entered squashWalks for TS %llu.\n", squashedTS);
+    if (!enableGhostMinion || squashedTS == 0) return;
+
+    if (currState && currState->strictnessTS != 0 && currState->strictnessTS >= squashedTS) {
+        currState->isSquashed = true;
+        ++stats.squashedAfter; // It was active, so it started
+        DPRINTF(GhostMinionPTW, "GhostMinion: Tagged active walk (TS: %llu) for squash.\n", currState->strictnessTS); 
+    }
+
+    for (auto& walk : pendingQueue) {
+        if (walk->strictnessTS != 0 && walk->strictnessTS >= squashedTS) {
+            walk->isSquashed = true;
+            ++stats.squashedBefore; 
+            DPRINTF(GhostMinionPTW, "GhostMinion: Tagged pending walk (TS: %llu) for squash.\n", walk->strictnessTS); 
+        }
+    }
+
+    for (int i = 0; i < MAX_LOOKUP_LEVELS; ++i) {
+        for (auto& walk : stateQueues[i]) {
+            if (walk->strictnessTS != 0 && walk->strictnessTS >= squashedTS) {
+                walk->isSquashed = true; 
+                ++stats.squashedAfter; 
+                DPRINTF(GhostMinionPTW, "GhostMinion: Tagged sleeping walk (TS: %llu) for squash.\n", walk->strictnessTS);
+            }
+        }
+    }
+
+    if (currState) {
+        DPRINTF(GhostMinionPTW, "GhostMinion: Completed squashWalks for active walk with strictness TS %llu.\n", currState->strictnessTS);
+    }
+}
+
+/**
+ * Promotes a successfully executed speculative page walk to architectural state.
+     * * When an instruction successfully retires/commits in the O3 CPU pipeline, this method 
+     * is called to safely clear the active Strictness Timestamp for the associated walk, 
+     * allowing intermediate Walk Cache entries to be safely accessed by younger instructions.
+     * * @param commitTS The strictness timestamp of the successfully committed instruction.
+ */
+void TableWalker::commitWalks(uint64_t commitTS)
+{
+    // DPRINTF(GhostMinionPTW, "GhostMinion: Committing walks with TS: %llu.\n", commitTS);
+    if (commitTS == 0) return;
+
+    // 1. Check the walk currently active in the processor
+    if (currState && currState->strictnessTS <= commitTS) {
+        currState->strictnessTS = 0; 
+        DPRINTF(GhostMinionPTW, "GhostMinion: Walk promoted to architectural safe (TS: %llu).\n", commitTS);
+    }
+
+    // 2. Check walks waiting to start
+    for (auto& walk : pendingQueue) {
+        if (walk->strictnessTS <= commitTS) {
+            walk->strictnessTS = 0; 
+            DPRINTF(GhostMinionPTW, "GhostMinion: Walk promoted to architectural safe (TS: %llu).\n", commitTS);
+        }
+    }
+
+    // 3. Check walks paused waiting for memory responses
+    for (int i = 0; i < MAX_LOOKUP_LEVELS; ++i) {
+        for (auto& walk : stateQueues[i]) {
+            if (walk->strictnessTS <= commitTS) {
+                walk->strictnessTS = 0; 
+                DPRINTF(GhostMinionPTW, "GhostMinion: Walk promoted to architectural safe (TS: %llu).\n", commitTS);
+            }
+        }
     }
 }
 

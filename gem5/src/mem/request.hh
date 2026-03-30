@@ -464,7 +464,7 @@ class Request
     {
         atomicOpFunctor.reset(other.atomicOpFunctor ?
                                 other.atomicOpFunctor->clone() : nullptr);
-	timestamp = 0;
+        timestamp = other.timestamp;
     }
 
     ~Request() {}
@@ -966,6 +966,11 @@ class Request
     bool isCacheInvalidate() const { return _flags.isSet(INVALIDATE); }
     bool isCacheMaintenance() const { return _flags.isSet(CLEAN|INVALIDATE); }
     /** @} */
+
+    // GhostMinion Getters and Setters
+    void setStrictnessTS(uint64_t ts) { timestamp = ts; }
+    uint64_t getStrictnessTS() const { return timestamp; }
+    bool hasStrictnessTS() const { return timestamp != 0; }
 };
 
 #endif // __MEM_REQUEST_HH__

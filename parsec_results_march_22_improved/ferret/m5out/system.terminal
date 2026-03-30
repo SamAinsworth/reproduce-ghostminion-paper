@@ -1,0 +1,83 @@
+[HOOKS] Entering ROI
+(12,1)
+(12,2)
+(12,3)
+(13,4)
+(14,5)
+(16,6)
+(17,7)
+(21,8)
+(23,9)
+(24,10)
+(25,11)
+(26,12)
+(31,13)
+(31,14)
+(33,15)
+(35,16)
+(39,17)
+(41,18)
+(41,19)
+(41,20)
+(47,21)
+(49,22)
+(51,23)
+(51,24)
+(53,25)
+(53,26)
+(55,27)
+(55,28)
+(59,29)
+(59,30)
+(61,31)
+(63,32)
+(63,33)
+(64,34)
+(64,35)
+(64,36)
+(64,37)
+(64,38)
+(64,39)
+(64,40)
+(64,41)
+(64,42)
+(64,43)
+(64,44)
+(64,45)
+(64,46)
+(64,47)
+(64,48)
+(64,49)
+(64,50)
+(64,51)
+(64,52)
+(64,53)
+(64,54)
+(64,55)
+(64,56)
+(64,57)
+(64,58)
+(64,59)
+(64,60)
+(64,61)
+(64,62)
+(64,63)
+(64,64)
+[GEM5]  Beginning of ROI
+[GEM5] Stats dumped.
+[GEM5] Total time spent in ROI: 0.365s
+[HOOKS] Leaving ROI
+QUERY TIME: 0.365 seconds
+[HOOKS] Total time spent in ROI: 0.365s
+[HOOKS] Terminating
+
+real	0m0.406s
+user	0m1.394s
+sys	0m0.048s
+[PARSEC] [----------    End of output    ----------]
+[PARSEC]
+[PARSEC] BIBLIOGRAPHY
+[PARSEC]
+[PARSEC] [1] Bienia. Benchmarking Modern Multiprocessors. Ph.D. Thesis, 2011.
+[PARSEC]
+[PARSEC] Done.

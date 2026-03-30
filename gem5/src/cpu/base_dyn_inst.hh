@@ -219,6 +219,12 @@ class BaseDynInst : public ExecContext, public RefCounted
     uint64_t timestamp;
     uint64_t timeGuard;
 
+    /** De-speculative Me: Resolution-based selective speculation state (per-thread). */
+    /**   0. Metadata. */
+    uint64_t ctrlDomainEpoch;
+    uint32_t unresolvedCtrlDeps;
+    bool selectiveNonSpecSafe;
+
     /** The size of the request */
     unsigned effSize;
 

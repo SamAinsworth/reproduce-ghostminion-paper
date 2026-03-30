@@ -147,7 +147,7 @@ DmaPort::recvReqRetry()
 RequestPtr
 DmaPort::dmaAction(Packet::Command cmd, Addr addr, int size, Event *event,
                    uint8_t *data, uint32_t sid, uint32_t ssid, Tick delay,
-                   Request::Flags flag)
+                   Request::Flags flag, uint64_t strictnessTS)
 {
     // one DMA request sender state for every action, that is then
     // split into many requests and packets based on the block size,
@@ -167,6 +167,11 @@ DmaPort::dmaAction(Packet::Command cmd, Addr addr, int size, Event *event,
 
         req = std::make_shared<Request>(
             gen.addr(), gen.size(), flag, requestorId);
+        
+        // GhostMinion: Tag the DMA request
+        if (strictnessTS != 0) {
+            req->timestamp = strictnessTS;
+        }
 
         req->setStreamId(sid);
         req->setSubStreamId(ssid);
@@ -195,10 +200,10 @@ DmaPort::dmaAction(Packet::Command cmd, Addr addr, int size, Event *event,
 
 RequestPtr
 DmaPort::dmaAction(Packet::Command cmd, Addr addr, int size, Event *event,
-                   uint8_t *data, Tick delay, Request::Flags flag)
+                   uint8_t *data, Tick delay, Request::Flags flag, uint64_t strictnessTS)
 {
     return dmaAction(cmd, addr, size, event, data,
-                     defaultSid, defaultSSid, delay, flag);
+                     defaultSid, defaultSSid, delay, flag, strictnessTS);
 }
 
 void

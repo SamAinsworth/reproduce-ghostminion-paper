@@ -1,0 +1,40 @@
+[HOOKS] Entering ROI
+[GEM5]  Beginning of ROI
+transaction number is 500000
+[GEM5] Stats dumped.
+[GEM5] Total time spent in ROI: 1.442s
+[HOOKS] Leaving ROI
+1522
+13083
+44649
+118072
+337195
+904434
+1946385
+3281416
+4382543
+4694188
+4068013
+2864888
+1636526
+750500
+270740
+74394
+14841
+1992
+156
+5
+the data preparation cost 0.774115 seconds, the FPgrowth cost 0.674813 seconds
+[HOOKS] Total time spent in ROI: 1.442s
+[HOOKS] Terminating
+
+real	0m1.451s
+user	0m3.255s
+sys	0m0.096s
+[PARSEC] [----------    End of output    ----------]
+[PARSEC]
+[PARSEC] BIBLIOGRAPHY
+[PARSEC]
+[PARSEC] [1] Bienia. Benchmarking Modern Multiprocessors. Ph.D. Thesis, 2011.
+[PARSEC]
+[PARSEC] Done.
