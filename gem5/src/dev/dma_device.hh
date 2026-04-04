@@ -150,12 +150,12 @@ class DmaPort : public RequestPort, public Drainable
 
     RequestPtr
     dmaAction(Packet::Command cmd, Addr addr, int size, Event *event,
-              uint8_t *data, Tick delay, Request::Flags flag = 0);
+              uint8_t *data, Tick delay, Request::Flags flag = 0, uint64_t strictnessTS = 0);
 
     RequestPtr
     dmaAction(Packet::Command cmd, Addr addr, int size, Event *event,
               uint8_t *data, uint32_t sid, uint32_t ssid, Tick delay,
-              Request::Flags flag = 0);
+              Request::Flags flag = 0, uint64_t strictnessTS = 0);
 
     bool dmaPending() const { return pendingCount > 0; }
 

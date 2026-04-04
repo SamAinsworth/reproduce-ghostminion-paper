@@ -95,6 +95,13 @@ BaseDynInst<Impl>::initVars()
     physEffAddr = 0;
     readyRegs = 0;
     memReqFlags = 0;
+
+    // De-speculative Me: Resolution-based selective speculation state (per-thread)
+    //   0. Metadata init
+    unresolvedCtrlDeps = 0;
+    ctrlDomainEpoch = 0;
+    selectiveNonSpecSafe = false;
+
     // hardware transactional memory
     htmUid = -1;
     htmDepth = 0;

@@ -136,6 +136,13 @@ class BaseTLB : public SimObject
      */
     virtual Port* getTableWalkerPort() { return NULL; }
 
+    /**
+     * Ghost Minion: promote the TLB entry for (vaddr, asid) to committed
+     * (timestamp=0) when the instruction that caused the fill commits.
+     * Default no-op for ISAs that do not use timestamped TLB entries.
+     */
+    virtual void promoteEntry(Addr vaddr, ThreadContext *tc) {}
+
     void memInvalidate() { flushAll(); }
 };
 

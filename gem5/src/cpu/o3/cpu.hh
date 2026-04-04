@@ -127,6 +127,12 @@ class FullO3CPU : public BaseO3CPU
     Status _status;
     uint64_t timestamp;
 
+    /** De-speculative Me: Resolution-based selective speculation state (per-thread). */
+    /**   1. Declare state vectors. */
+    std::vector<InstSeqNum> lastUnresolvedBranchSeq;
+    std::vector<InstSeqNum> resolvedBranchSeq;
+    std::vector<uint64_t>   ctrlResolutionEpoch;
+
   private:
 
     /** The tick event used for scheduling CPU ticks. */

@@ -271,6 +271,31 @@ ROB<Impl>::retireHead(ThreadID tid)
     cpu->removeFrontInst(head_inst);
 }
 
+// GhostMinion: Shifts all speculative timestamp blocks above
+// target_timestamp down by one epoch, keeping the sliding window
+// contiguous. Also decrements cpu->timestamp to keep the decode
+// frontend in sync with the backend.
+template <class Impl>
+void
+ROB<Impl>::flattenTimestamp(ThreadID tid, uint64_t target_timestamp)
+{
+    for (auto &inst : instList[tid]) {
+        // Protect the timestamp = 0 sentinel used by strictly-ordered loads.
+        if (inst->timestamp > 0 && inst->timestamp > target_timestamp) {
+            inst->timestamp--;
+            // Clear timeGuard only for the block that just merged into
+            // the confirmed-safe epoch.
+            if (inst->timestamp == target_timestamp) {
+                inst->timeGuard = 0;
+            }
+        }
+    }
+    // CRITICAL: keep the decode-side counter in sync.
+    // NOTE: assumes SMT is disabled (single cpu->timestamp counter).
+    if (cpu->timestamp > 0)
+        cpu->timestamp--;
+}
+
 template <class Impl>
 bool
 ROB<Impl>::isHeadReady(ThreadID tid)

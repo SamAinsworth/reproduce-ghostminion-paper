@@ -1,0 +1,6 @@
+Benchmark Base Ghostminion NewFeature
+blackscholes 1.000 1.000 1.000
+canneal 1.000 .986 .978
+ferret 1.000 .947 .946
+fluidanimate 1.000 1.010 1.022
+swaptions 1.000 .955 .956

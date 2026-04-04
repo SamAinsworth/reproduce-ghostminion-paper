@@ -59,6 +59,7 @@
 #include "cpu/base.hh"
 #include "cpu/thread_context.hh"
 #include "debug/Checkpoint.hh"
+#include "debug/GhostMinionTLB.hh"
 #include "debug/TLB.hh"
 #include "debug/TLBVerbose.hh"
 #include "mem/packet_access.hh"
@@ -158,20 +159,34 @@ TLB::finalizePhysical(const RequestPtr &req,
 TlbEntry*
 TLB::lookup(Addr va, uint16_t asn, uint8_t vmid, bool hyp, bool secure,
             bool functional, bool ignore_asn, ExceptionLevel target_el,
-            bool in_host)
+            bool in_host, uint64_t request_timestamp)
 {
-
     TlbEntry *retval = NULL;
-
-    // Maintaining LRU array
     int x = 0;
+    if (request_timestamp != 0)
+        stats.ghostMinionLookupsNonzeroReqTs++;
     while (retval == NULL && x < size) {
         if ((!ignore_asn && table[x].match(va, asn, vmid, hyp, secure, false,
              target_el, in_host)) ||
             (ignore_asn && table[x].match(va, vmid, hyp, secure, target_el,
              in_host))) {
-            // We only move the hit entry ahead when the position is higher
-            // than rangeMRU
+
+            // Ghost Minion: only visible if committed (timestamp==0) or older/equal
+            if (request_timestamp != 0 && table[x].timestamp != 0 &&
+                table[x].timestamp > request_timestamp) {
+                stats.ghostMinionStrictSkips++;
+                DPRINTF(GhostMinionTLB,
+                        "GHOST_MINION_STRICT_SKIP: VA %#x | ReqTS: %llu | "
+                        "EntryTS: %llu | Delta: %llu\n",
+                        va, (unsigned long long)request_timestamp,
+                        (unsigned long long)table[x].timestamp,
+                        (unsigned long long)(table[x].timestamp -
+                                              request_timestamp));
+
+                ++x;
+                continue;
+            }
+
             if (x > rangeMRU && !functional) {
                 TlbEntry tmp_entry = table[x];
                 for (int i = x; i > 0; i--)
@@ -185,20 +200,8 @@ TLB::lookup(Addr va, uint16_t asn, uint8_t vmid, bool hyp, bool secure,
         }
         ++x;
     }
-
-    DPRINTF(TLBVerbose, "Lookup %#x, asn %#x -> %s vmn 0x%x hyp %d secure %d "
-            "ppn %#x size: %#x pa: %#x ap:%d ns:%d nstid:%d g:%d asid: %d "
-            "el: %d\n",
-            va, asn, retval ? "hit" : "miss", vmid, hyp, secure,
-            retval ? retval->pfn       : 0, retval ? retval->size  : 0,
-            retval ? retval->pAddr(va) : 0, retval ? retval->ap    : 0,
-            retval ? retval->ns        : 0, retval ? retval->nstid : 0,
-            retval ? retval->global    : 0, retval ? retval->asid  : 0,
-            retval ? retval->el        : 0);
-
     return retval;
 }
-
 // insert a new TLB entry
 void
 TLB::insert(Addr addr, TlbEntry &entry)
@@ -227,7 +230,26 @@ TLB::insert(Addr addr, TlbEntry &entry)
     table[0] = entry;
 
     stats.inserts++;
+    if (entry.timestamp != 0)
+        stats.ghostMinionInsertsNonzeroEntryTs++;
     ppRefills->notify(1);
+}
+
+// TODO: Double check this is correct - Cursor says this is correct.
+void
+TLB::promoteEntry(Addr vaddr, ThreadContext *tc)
+{
+    updateMiscReg(tc, NormalTran);
+    ExceptionLevel target_el = aarch64 ? aarch64EL : EL1;
+    for (int i = 0; i < size; i++) {
+        if (!table[i].valid)
+            continue;
+        if (table[i].match(vaddr, asid, vmid, isHyp, isSecure, false,
+                           target_el, false)) {
+            table[i].timestamp = 0;
+            return;
+        }
+    }
 }
 
 void
@@ -435,6 +457,12 @@ TLB::TlbStats::TlbStats(Stats::Group *parent)
     ADD_STAT(domainFaults, "Number of TLB faults due to domain restrictions"),
     ADD_STAT(permsFaults, "Number of TLB faults due to permissions"
         " restrictions"),
+    ADD_STAT(ghostMinionLookupsNonzeroReqTs, "Ghost Minion: lookups with "
+        "non-zero request timestamp"),
+    ADD_STAT(ghostMinionStrictSkips, "Ghost Minion: matching entries skipped "
+        "due to strict timestamp ordering"),
+    ADD_STAT(ghostMinionInsertsNonzeroEntryTs, "Ghost Minion: TLB inserts "
+        "with non-zero entry timestamp (speculative fill tag)"),
     ADD_STAT(readAccesses, "DTB read accesses", readHits + readMisses),
     ADD_STAT(writeAccesses, "DTB write accesses", writeHits + writeMisses),
     ADD_STAT(instAccesses, "ITB inst accesses", instHits + instMisses),
@@ -465,15 +493,20 @@ TLB::translateSe(const RequestPtr &req, ThreadContext *tc, Mode mode,
                                  mode==Execute);
     else
         vaddr = vaddr_tainted;
-    Request::Flags flags = req->getFlags();
 
+    // --- GHOST MINION SE MODE HACK ---
+    // Force the hardware lookup so our strictness timestamps get evaluated.
+    lookup(vaddr, asid, vmid, isHyp, isSecure, false, false,
+           aarch64 ? aarch64EL : EL1, false, req->timestamp);
+    // ---------------------------------
+
+    Request::Flags flags = req->getFlags();
     bool is_fetch = (mode == Execute);
     bool is_write = (mode == Write);
 
     if (!is_fetch) {
         if (sctlr.a || !(flags & AllowUnaligned)) {
             if (vaddr & mask(flags & AlignmentMask)) {
-                // LPAE is always disabled in SE mode
                 return std::make_shared<DataAbort>(
                     vaddr_tainted,
                     TlbEntry::DomainType::NoAccess, is_write,
@@ -485,14 +518,12 @@ TLB::translateSe(const RequestPtr &req, ThreadContext *tc, Mode mode,
 
     Addr paddr;
     Process *p = tc->getProcessPtr();
-
     if (!p->pTable->translate(vaddr, paddr))
         return std::make_shared<GenericPageTableFault>(vaddr_tainted);
     req->setPaddr(paddr);
 
     return finalizePhysical(req, tc, mode);
 }
-
 Fault
 TLB::checkPermissions(TlbEntry *te, const RequestPtr &req, Mode mode)
 {
@@ -1482,7 +1513,7 @@ TLB::getTE(TlbEntry **te, const RequestPtr &req, ThreadContext *tc, Mode mode,
         vaddr = vaddr_tainted;
     }
     *te = lookup(vaddr, asid, vmid, isHyp, is_secure, false, false, target_el,
-                 false);
+                 false, req->timestamp);
     if (*te == NULL) {
         if (req->isPrefetch()) {
             // if the request is a prefetch don't attempt to fill the TLB or go
@@ -1514,7 +1545,7 @@ TLB::getTE(TlbEntry **te, const RequestPtr &req, ThreadContext *tc, Mode mode,
         }
 
         *te = lookup(vaddr, asid, vmid, isHyp, is_secure, false, false,
-                     target_el, false);
+                     target_el, false, req->timestamp);
         if (!*te)
             printTlb();
         assert(*te);

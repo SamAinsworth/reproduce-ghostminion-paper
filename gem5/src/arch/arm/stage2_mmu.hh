@@ -89,10 +89,13 @@ class Stage2MMU : public SimObject
                BaseTLB::Mode mode);
 
         void setVirt(Addr vaddr, int size, Request::Flags flags,
-                    int requestorId)
+                    int requestorId, uint64_t strictnessTS = 0)
         {
             numBytes = size;
             req->setVirt(vaddr, size, flags, requestorId, 0);
+            if (strictnessTS != 0) {
+              req->timestamp = strictnessTS;
+            }
         }
 
         void translateTiming(ThreadContext *tc)
@@ -112,10 +115,10 @@ class Stage2MMU : public SimObject
     DmaPort& getDMAPort() { return port; }
 
     Fault readDataUntimed(ThreadContext *tc, Addr oVAddr, Addr descAddr,
-        uint8_t *data, int numBytes, Request::Flags flags, bool isFunctional);
+        uint8_t *data, int numBytes, Request::Flags flags, bool isFunctional, uint64_t strictnessTS = 0);
     void readDataTimed(ThreadContext *tc, Addr descAddr,
                        Stage2Translation *translation, int numBytes,
-                       Request::Flags flags);
+                       Request::Flags flags, uint64_t strictnessTS = 0);
 
     TLB* stage1Tlb() const { return _stage1Tlb; }
     TLB* stage2Tlb() const { return _stage2Tlb; }

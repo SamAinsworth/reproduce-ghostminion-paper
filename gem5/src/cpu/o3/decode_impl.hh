@@ -688,7 +688,26 @@ DefaultDecode<Impl>::decodeInsts(ThreadID tid)
         // see if branches were predicted correctly.
 	inst->timestamp = cpu->timestamp;
 	inst->timeGuard = 0;
-	cpu->timestamp++;
+	//GhostMinion: only increment timestamp on branch/control instructions
+	if (inst->isControl()) {
+	    cpu->timestamp++;
+	}
+
+    // De-speculative Me: Resolution-based selective speculation state (per-thread)
+    //   2. Snapshot control-resolution context for this instruction.
+    inst->ctrlDomainEpoch = cpu->ctrlResolutionEpoch[tid];
+    inst->unresolvedCtrlDeps = cpu->lastUnresolvedBranchSeq[tid];
+    inst->selectiveNonSpecSafe =
+        (inst->unresolvedCtrlDeps == 0) ||
+        (inst->unresolvedCtrlDeps <= cpu->resolvedBranchSeq[tid]);
+
+    // De-speculative Me: Resolution-based selective speculation state (per-thread)
+    //   2. A control instruction becomes the newest unresolved dependency.
+    if (inst->isControl()) {
+        cpu->lastUnresolvedBranchSeq[tid] = inst->seqNum;
+        inst->selectiveNonSpecSafe = false;
+    }
+
 	//GhostMinion: set inst timestamp
         toRename->insts[toRenameIndex] = inst;
 

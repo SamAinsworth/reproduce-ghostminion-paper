@@ -46,6 +46,8 @@
 #include <string>
 
 #include "arch/utility.hh"
+#include "arch/arm/tlb.hh"
+#include "arch/arm/table_walker.hh"
 #include "base/loader/symtab.hh"
 #include "base/logging.hh"
 #include "config/the_isa.hh"
@@ -60,6 +62,7 @@
 #include "debug/CommitRate.hh"
 #include "debug/Drain.hh"
 #include "debug/ExecFaulting.hh"
+#include "debug/GhostMinionPTW.hh"
 #include "debug/HtmCpu.hh"
 #include "debug/O3PipeView.hh"
 #include "params/DerivO3CPU.hh"
@@ -554,6 +557,25 @@ template <class Impl>
 void
 DefaultCommit<Impl>::squashAll(ThreadID tid)
 {
+    // Ghost Minion: Squash PTW on pipeline flush
+    if (!rob->isEmpty(tid)) {
+        // Grab the timestamp from the oldest instruction in the ROB
+        // since EVERYTHING currently in the ROB is being squashed.
+        uint64_t squashedTS = rob->readHeadInst(tid)->timestamp;
+        
+        if (squashedTS != 0) {
+            auto *dtb = static_cast<ArmISA::TLB*>(cpu->dtb);
+            if (dtb && dtb->getTableWalker() && dtb->getTableWalker()->hasGhostMinion()) {
+                dtb->getTableWalker()->squashWalks(squashedTS);
+            }
+            
+            auto *itb = static_cast<ArmISA::TLB*>(cpu->itb);
+            if (itb && itb->getTableWalker() && itb->getTableWalker()->hasGhostMinion()) {
+                itb->getTableWalker()->squashWalks(squashedTS);
+            }
+        }
+    }
+
     // If we want to include the squashing instruction in the squash,
     // then use one older sequence number.
     // Hopefully this doesn't mess things up.  Basically I want to squash
@@ -1072,6 +1094,13 @@ DefaultCommit<Impl>::commitInsts()
             // Try to commit the head instruction.
             bool commit_success = commitHead(head_inst, num_committed);
 
+            // GhostMinion: flatten the speculative block guarded by this branch
+            if (commit_success && head_inst->isControl()) {
+                uint64_t r = head_inst->timestamp;
+                uint64_t target = (r > 0) ? (r - 1) : 0;
+                rob->flattenTimestamp(tid, target);
+            }
+
             if (commit_success) {
                 ++num_committed;
                 stats.committedInstType[tid][head_inst->opClass()]++;
@@ -1083,7 +1112,24 @@ DefaultCommit<Impl>::commitInsts()
 					  //  printf("committing load addr %ld at pc %ld\n", head_inst->physEffAddr,pc[tid].instAddr());
 					//TODO: add notion of timestamp in here? Probably done inplicitly in cache by overeager evict.
 					cpu->getDataPort().commitaLoad(head_inst->physEffAddr, pc[tid].instAddr());
+                    // Ghost Minion: promote D-TLB entry for this (vaddr, asid) to committed
+                    // TODO: Double check this is correct - Cursor says this is correct.
+                    if (head_inst->effAddrValid())
+                        cpu->dtb->promoteEntry(head_inst->effAddr,
+                                cpu->thread[tid]->getTC());
+                }
 
+                /** Ghost Minion: Promote Speculative PTW */
+                uint64_t commitTS = head_inst->timestamp;
+                if (commitTS != 0) {
+                    auto *dtb = static_cast<ArmISA::TLB*>(cpu->dtb);
+                    if (dtb && dtb->getTableWalker() && dtb->getTableWalker()->hasGhostMinion()) {
+                        dtb->getTableWalker()->commitWalks(commitTS);
+                    }
+                    auto *itb = static_cast<ArmISA::TLB*>(cpu->itb);
+                    if (itb && itb->getTableWalker() && itb->getTableWalker()->hasGhostMinion()) {
+                        itb->getTableWalker()->commitWalks(commitTS);
+                    }
                 }
 
                 // hardware transactional memory
